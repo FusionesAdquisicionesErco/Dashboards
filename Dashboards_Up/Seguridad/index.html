@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1C1C1E">
+<title>Dashboard de Seguridad · ERCO Energy · Auras</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="orden_publico_alto.js"></script>
+<script src="orden_publico_medio.js"></script>
+<style>
+  :root {
+    --erco-dark: #1C1C1E;
+    --erco-dark-surface: #141414;
+    --erco-dark-border: rgba(255,255,255,0.10);
+    --erco-dark-border-med: rgba(255,255,255,0.15);
+    --erco-dark-text: #FFFFFF;
+    --erco-dark-text-sec: rgba(255,255,255,0.75);
+    --erco-dark-text-muted: rgba(255,255,255,0.50);
+
+    --erco-light-bg: #F5F5F5;
+    --erco-card: #FFFFFF;
+    --erco-card-hover: #FAFAFA;
+    --erco-light-border: rgba(0,0,0,0.08);
+    --erco-light-border-med: rgba(0,0,0,0.12);
+    --erco-light-text: #1C1C1E;
+    --erco-light-text-sec: #6B7280;
+    --erco-light-text-muted: #9CA3AF;
+    --erco-light-track: #E5E7EB;
+
+    --erco-green: #A3E635;
+    --erco-green-dark: #84CC16;
+    --erco-green-deeper: #65A30D;
+    --erco-green-glow: rgba(163, 230, 53, 0.22);
+    --erco-green-tint: rgba(163, 230, 53, 0.08);
+
+    --font-heading: 'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+    --radius-sm: 12px; --radius-md: 16px; --radius-lg: 20px;
+    --radius-xl: 24px; --radius-2xl: 32px;
+
+    --shadow-card: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
+    --shadow-card-lg: 0 8px 30px rgba(0,0,0,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-body);
+    background: var(--erco-dark);
+    color: var(--erco-light-text);
+    min-height: 100vh;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); font-weight: 600; letter-spacing: -0.01em; }
+
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(28, 28, 30, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--erco-dark-border);
+    height: 64px;
+  }
+  .nav-inner {
+    max-width: 1600px; margin: 0 auto; height: 100%;
+    padding: 0 32px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .brand-wordmark {
+    font-family: var(--font-heading);
+    font-size: 22px; font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--erco-dark-text);
+  }
+  .brand-divider { width: 1px; height: 20px; background: var(--erco-dark-border-med); }
+  .brand-sub {
+    font-size: 11px; color: var(--erco-dark-text-sec);
+    text-transform: uppercase; letter-spacing: 2px; font-weight: 500;
+  }
+  .nav-right { display: flex; align-items: center; gap: 16px; }
+  .nav-pill {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 14px;
+    border: 1.5px solid var(--erco-dark-border-med);
+    border-radius: 9999px;
+    font-size: 12px; color: var(--erco-dark-text-sec);
+    font-weight: 500;
+  }
+  .nav-pill .dot-green {
+    width: 6px; height: 6px; background: var(--erco-green);
+    border-radius: 50%; box-shadow: 0 0 8px var(--erco-green);
+  }
+  .nav-user {
+    font-size: 12px; color: var(--erco-dark-text-sec);
+    display: flex; align-items: center;
+  }
+
+  .hero {
+    padding: 96px 32px 32px;
+    position: relative;
+    overflow: hidden;
+    background: var(--erco-dark);
+  }
+  .hero::before {
+    content: '';
+    position: absolute; top: 0; left: 30%; width: 800px; height: 400px;
+    background: radial-gradient(circle at center, var(--erco-green-glow) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+  .hero-inner {
+    max-width: 1600px; margin: 0 auto;
+    position: relative; z-index: 1;
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  .pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 16px;
+    border: 1.5px solid var(--erco-dark-border-med);
+    border-radius: 9999px;
+    font-size: 12px; color: var(--erco-dark-text-sec);
+    font-weight: 400; align-self: flex-start;
+  }
+  .pill i { color: var(--erco-green); font-size: 10px; }
+  .hero h1 {
+    font-size: 40px; line-height: 1.1; font-weight: 600;
+    max-width: 900px; color: var(--erco-dark-text);
+  }
+  .hero h1 .accent { color: var(--erco-green); }
+  .hero p {
+    font-size: 15px; color: var(--erco-dark-text-sec);
+    max-width: 820px;
+  }
+
+  .content-wrap {
+    background: var(--erco-light-bg);
+    padding-top: 8px; padding-bottom: 40px;
+    border-radius: 32px 32px 0 0;
+    margin-top: -12px;
+    position: relative; z-index: 2;
+  }
+
+  .stats-bar {
+    max-width: 1600px; margin: 0 auto;
+    padding: 24px 32px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+  }
+  .stat-card {
+    background: var(--erco-card);
+    border: 1px solid var(--erco-light-border);
+    border-radius: var(--radius-xl);
+    padding: 18px 20px;
+    transition: all 0.25s;
+    box-shadow: var(--shadow-card);
+  }
+  .stat-card:hover {
+    border-color: var(--erco-light-border-med);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card-lg);
+  }
+  .stat-card .label {
+    font-size: 11px; text-transform: uppercase;
+    color: var(--erco-light-text-muted); letter-spacing: 1px;
+    margin-bottom: 8px; font-weight: 500;
+  }
+  .stat-card .value {
+    font-family: var(--font-heading);
+    font-size: 28px; font-weight: 600;
+    color: var(--erco-light-text);
+  }
+  .stat-card.accent .value { color: var(--erco-green-deeper); }
+  .stat-card .sub {
+    font-size: 11px; color: var(--erco-light-text-muted);
+    margin-top: 4px;
+  }
+
+  main {
+    max-width: 1600px; margin: 0 auto;
+    padding: 0 32px 40px;
+    display: grid;
+    grid-template-columns: 320px 1fr 400px;
+    gap: 16px;
+    height: calc(100vh - 340px);
+    min-height: 650px;
+  }
+  @media (max-width: 1300px) {
+    main { grid-template-columns: 1fr; height: auto; }
+    .hero h1 { font-size: 32px; }
+  }
+
+  .panel {
+    background: var(--erco-card);
+    border: 1px solid var(--erco-light-border);
+    border-radius: var(--radius-2xl);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    box-shadow: var(--shadow-card);
+  }
+  .panel-header {
+    padding: 18px 20px 14px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--erco-light-border);
+    background: var(--erco-card);
+  }
+  .panel-header .title {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--font-heading);
+    font-size: 14px; font-weight: 600; color: var(--erco-light-text);
+  }
+  .panel-header .title i { color: var(--erco-green-deeper); font-size: 10px; }
+  .panel-header .pill-small {
+    padding: 4px 12px;
+    background: var(--erco-light-bg);
+    border: 1px solid var(--erco-light-border);
+    border-radius: 9999px;
+    font-size: 11px; color: var(--erco-light-text-sec);
+    font-weight: 500;
+  }
+  .panel-body { padding: 16px; overflow-y: auto; flex: 1; background: var(--erco-card); }
+
+  .search-wrap { position: relative; margin-bottom: 12px; }
+  .search-wrap i {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    color: var(--erco-light-text-muted); font-size: 12px;
+  }
+  .search-box {
+    width: 100%;
+    padding: 10px 14px 10px 36px;
+    background: var(--erco-light-bg);
+    border: 1.5px solid var(--erco-light-border);
+    border-radius: var(--radius-md);
+    font-size: 13px; color: var(--erco-light-text);
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .search-box::placeholder { color: var(--erco-light-text-muted); }
+  .search-box:focus {
+    outline: none; border-color: var(--erco-green);
+    background: var(--erco-card);
+    box-shadow: 0 0 0 3px var(--erco-green-tint);
+  }
+
+  .btn-reset {
+    background: var(--erco-green);
+    color: var(--erco-dark);
+    border: none;
+    padding: 10px 16px;
+    border-radius: 9999px;
+    font-weight: 600; font-family: var(--font-body);
+    cursor: pointer; font-size: 13px;
+    margin-bottom: 12px; width: 100%;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-reset:hover {
+    background: var(--erco-green-dark);
+    box-shadow: 0 4px 20px var(--erco-green-glow);
+  }
+
+  .project-list { list-style: none; }
+  .project-item {
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    background: var(--erco-light-bg);
+    border: 1px solid var(--erco-light-border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 10px;
+  }
+  .project-item:hover {
+    background: var(--erco-card);
+    border-color: var(--erco-green-deeper);
+    transform: translateX(3px);
+    box-shadow: var(--shadow-card);
+  }
+  .project-item.active {
+    background: var(--erco-green-tint);
+    border-color: var(--erco-green);
+    box-shadow: 0 0 0 3px var(--erco-green-tint);
+  }
+  .project-item .p-name { font-weight: 500; font-size: 13px; color: var(--erco-light-text); }
+  .project-item .p-loc {
+    font-size: 11px; color: var(--erco-light-text-muted);
+    margin-top: 2px;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .p-badge {
+    width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 13px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    font-family: var(--font-heading);
+  }
+
+  .map-panel .panel-body { padding: 0; position: relative; }
+  #map { width: 100%; height: 100%; min-height: 500px; background: var(--erco-light-bg); }
+
+  .map-toast {
+    position: absolute; top: 15px; left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255,255,255,0.98);
+    color: var(--erco-light-text);
+    padding: 8px 18px;
+    border-radius: 9999px;
+    font-size: 12px; font-weight: 500;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    z-index: 1000;
+    opacity: 0; transition: opacity 0.4s;
+    border: 1.5px solid var(--erco-green);
+    pointer-events: none;
+  }
+  .map-toast.show { opacity: 1; }
+  .map-toast .check { color: var(--erco-green-deeper); margin-right: 6px; font-weight: 700; }
+
+  .map-loader {
+    position: absolute; inset: 0;
+    background: rgba(245,245,245,0.95);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 500; flex-direction: column; gap: 14px;
+  }
+  .map-loader .spinner {
+    width: 40px; height: 40px;
+    border: 3px solid var(--erco-light-border);
+    border-top-color: var(--erco-green);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .map-loader .text {
+    color: var(--erco-light-text); font-weight: 500; font-size: 13px;
+    font-family: var(--font-heading);
+  }
+
+  .leaflet-container {
+    font-family: var(--font-body);
+    background: var(--erco-light-bg) !important;
+  }
+  .leaflet-tooltip {
+    background: rgba(255,255,255,0.98) !important;
+    color: var(--erco-light-text) !important;
+    border: 1px solid var(--erco-light-border-med) !important;
+    border-radius: 10px !important;
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
+  }
+  .leaflet-tooltip::before { display: none; }
+  .leaflet-popup-content-wrapper {
+    background: rgba(255,255,255,0.98) !important;
+    color: var(--erco-light-text) !important;
+    border: 1px solid var(--erco-light-border-med) !important;
+    border-radius: 14px !important;
+  }
+  .leaflet-popup-tip { background: rgba(255,255,255,0.98) !important; }
+  .leaflet-popup-content { font-size: 12px; line-height: 1.5; }
+  .leaflet-control-zoom a {
+    background: rgba(255,255,255,0.95) !important;
+    color: var(--erco-light-text) !important;
+    border-color: var(--erco-light-border-med) !important;
+  }
+  .leaflet-control-zoom a:hover {
+    background: var(--erco-green-tint) !important;
+    color: var(--erco-green-deeper) !important;
+  }
+  .leaflet-control-attribution {
+    background: rgba(255,255,255,0.8) !important;
+    color: var(--erco-light-text-muted) !important;
+    font-size: 10px;
+  }
+  .leaflet-control-attribution a { color: var(--erco-light-text-sec) !important; }
+
+  .info-legend {
+    background: rgba(255,255,255,0.98) !important;
+    backdrop-filter: blur(10px);
+    color: var(--erco-light-text) !important;
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    font-size: 11px; line-height: 1.5;
+    min-width: 190px;
+    border: 1.5px solid var(--erco-green);
+  }
+  .info-legend h4 {
+    margin: 0 0 4px;
+    font-size: 11px; color: var(--erco-light-text);
+    text-transform: uppercase; letter-spacing: 1px;
+    font-weight: 600; font-family: var(--font-heading);
+  }
+  .info-legend .sub {
+    font-size: 9.5px; color: var(--erco-light-text-muted);
+    margin-bottom: 10px;
+  }
+  .legend-scale { display: flex; flex-direction: column; gap: 4px; margin: 6px 0; }
+  .legend-row {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 10.5px; color: var(--erco-light-text);
+  }
+  .legend-swatch {
+    width: 22px; height: 14px; border-radius: 3px;
+    border: 1px solid rgba(0,0,0,0.15);
+    flex-shrink: 0;
+  }
+  .legend-row b { font-weight: 700; }
+  .legend-row .lvl-label {
+    color: var(--erco-light-text-muted); font-size: 10px;
+  }
+  .info-legend .no-data {
+    margin-top: 10px; padding-top: 8px;
+    border-top: 1px solid var(--erco-light-border);
+    color: var(--erco-light-text-muted);
+    display: flex; align-items: center; gap: 6px; font-size: 10px;
+    line-height: 1.3;
+  }
+  .info-legend .no-data i {
+    display: inline-block; width: 16px; height: 10px;
+    background: #E5E7EB; border-radius: 2px; flex-shrink: 0;
+  }
+
+  .details-card {
+    background: var(--erco-card);
+    border: 1px solid var(--erco-light-border);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    margin-bottom: 12px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+  }
+  .details-card::before {
+    content: '';
+    position: absolute; top: -30px; right: -30px;
+    width: 150px; height: 150px;
+    background: radial-gradient(circle, var(--erco-green-tint) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .details-card h3 {
+    color: var(--erco-light-text); font-size: 18px;
+    margin-bottom: 6px; position: relative; z-index: 1;
+    font-weight: 600;
+  }
+  .details-card .subtitle {
+    color: var(--erco-light-text-muted); font-size: 12px;
+    margin-bottom: 14px; position: relative; z-index: 1;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .details-card .subtitle i { color: var(--erco-green-deeper); font-size: 10px; }
+
+  .metrics-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 8px; margin-bottom: 12px;
+    position: relative; z-index: 1;
+  }
+  .metric {
+    background: var(--erco-light-bg);
+    border: 1px solid var(--erco-light-border);
+    padding: 12px; border-radius: var(--radius-md);
+    text-align: center;
+    border-top-width: 3px;
+  }
+  .metric .m-label {
+    font-size: 10px; text-transform: uppercase;
+    color: var(--erco-light-text-muted); letter-spacing: 0.5px;
+    font-weight: 500;
+  }
+  .metric .m-value {
+    font-family: var(--font-heading);
+    font-size: 24px; font-weight: 600;
+    color: var(--erco-light-text); margin-top: 4px;
+  }
+
+  .security-indicator {
+    background: var(--erco-light-bg);
+    border: 1px solid var(--erco-light-border);
+    border-radius: var(--radius-md);
+    padding: 16px; text-align: center; margin-top: 12px;
+    position: relative; z-index: 1;
+  }
+  .security-indicator .s-label {
+    font-size: 11px; text-transform: uppercase;
+    color: var(--erco-light-text-muted); letter-spacing: 1px;
+    margin-bottom: 8px; font-weight: 500;
+  }
+  .security-indicator .s-value {
+    display: inline-block; padding: 10px 26px;
+    border-radius: 9999px; color: white;
+    font-weight: 700; font-size: 20px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    font-family: var(--font-heading);
+  }
+  .security-indicator .s-desc {
+    margin-top: 10px; font-size: 12px;
+    color: var(--erco-light-text-sec);
+  }
+
+  .widget-title {
+    font-size: 11px; text-transform: uppercase;
+    color: var(--erco-green-deeper); letter-spacing: 1.5px;
+    margin: 16px 0 8px; font-weight: 600;
+    display: flex; align-items: center; gap: 8px;
+    font-family: var(--font-heading);
+  }
+  .widget-title i { font-size: 10px; }
+  .widget {
+    background: var(--erco-light-bg);
+    border: 1px solid var(--erco-light-border);
+    border-radius: var(--radius-md);
+    padding: 14px; margin-bottom: 10px;
+  }
+
+  .compare-row { margin-bottom: 14px; }
+  .compare-row:last-child { margin-bottom: 4px; }
+  .compare-label {
+    display: flex; justify-content: space-between;
+    font-size: 11px; color: var(--erco-light-text);
+    font-weight: 500;
+    margin-bottom: 5px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .compare-label .val {
+    color: var(--erco-light-text-muted);
+    font-family: var(--font-heading); font-weight: 600;
+  }
+  .compare-bar-track {
+    position: relative;
+    background: var(--erco-light-track);
+    height: 22px; border-radius: 6px; overflow: hidden;
+    border: 1px solid var(--erco-light-border);
+  }
+  .compare-bar-fill {
+    height: 100%; border-radius: 6px;
+    display: flex; align-items: center; justify-content: flex-end;
+    padding-right: 8px; color: white; font-size: 11px; font-weight: 700;
+    transition: width 0.6s ease;
+    font-family: var(--font-heading);
+  }
+  .compare-bar-avg {
+    position: absolute; top: 0; height: 100%;
+    width: 2px; background: var(--erco-green-deeper);
+    box-shadow: 0 0 4px rgba(101,163,13,0.4);
+  }
+  .compare-bar-avg::before {
+    content: 'Prom'; position: absolute; top: -15px; left: -14px;
+    font-size: 9px; color: white; font-weight: 700;
+    background: var(--erco-green-deeper); padding: 1px 5px; border-radius: 3px;
+    white-space: nowrap;
+  }
+
+  .recommendation {
+    padding: 14px 16px; border-radius: var(--radius-md);
+    font-size: 12.5px; line-height: 1.55;
+    color: var(--erco-light-text-sec);
+    border-left: 3px solid;
+    background:
+      linear-gradient(135deg, var(--erco-green-tint) 0%, transparent 100%),
+      var(--erco-card);
+    border-top: 1px solid var(--erco-light-border);
+    border-right: 1px solid var(--erco-light-border);
+    border-bottom: 1px solid var(--erco-light-border);
+  }
+  .recommendation .r-title {
+    font-size: 12px; text-transform: uppercase; letter-spacing: 1px;
+    font-weight: 600; margin-bottom: 6px; color: var(--erco-light-text);
+    font-family: var(--font-heading);
+  }
+
+  .dist-stacked {
+    display: flex; height: 32px; border-radius: 8px; overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  .dist-segment {
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 13px;
+    transition: flex-grow 0.4s;
+    font-family: var(--font-heading);
+  }
+  .dist-legend {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    margin-top: 10px; font-size: 10px;
+    color: var(--erco-light-text-sec);
+  }
+  .dist-legend-item { display: flex; align-items: center; gap: 5px; }
+  .dist-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  .mini-list-item {
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--erco-card);
+    border: 1px solid var(--erco-light-border);
+    padding: 10px 12px; border-radius: var(--radius-md);
+    margin-bottom: 6px; cursor: pointer; transition: all 0.2s;
+    gap: 10px;
+  }
+  .mini-list-item:hover {
+    background: var(--erco-card-hover);
+    border-color: var(--erco-green);
+    transform: translateX(3px);
+    box-shadow: var(--shadow-card);
+  }
+  .mini-list-item .rank {
+    background: var(--erco-light-bg); color: var(--erco-light-text);
+    width: 22px; height: 22px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700; flex-shrink: 0;
+    font-family: var(--font-heading);
+    border: 1px solid var(--erco-light-border-med);
+  }
+  .mini-list-item .info { flex: 1; min-width: 0; }
+  .mini-list-item .info .n {
+    font-weight: 500; font-size: 12.5px; color: var(--erco-light-text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .mini-list-item .info .l {
+    font-size: 10.5px; color: var(--erco-light-text-muted);
+    margin-top: 2px;
+  }
+  .mini-badge {
+    width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 11px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    flex-shrink: 0;
+    font-family: var(--font-heading);
+  }
+
+  .dept-bar-row {
+    display: grid; grid-template-columns: 140px 1fr 65px;
+    gap: 10px; align-items: center; margin-bottom: 7px;
+    font-size: 11px;
+  }
+  .dept-bar-name {
+    color: var(--erco-light-text); font-weight: 500;
+    text-align: right;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .dept-bar-track {
+    background: var(--erco-light-track); height: 16px;
+    border-radius: 4px; overflow: hidden;
+    border: 1px solid var(--erco-light-border);
+  }
+  .dept-bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+  .dept-bar-info {
+    color: var(--erco-light-text); font-size: 11px; text-align: left;
+    font-family: var(--font-heading); font-weight: 600;
+  }
+  .dept-bar-info .avg {
+    color: var(--erco-light-text-muted); font-weight: 400;
+    font-size: 10px; margin-left: 3px;
+  }
+
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: var(--erco-light-bg); }
+  ::-webkit-scrollbar-thumb { background: var(--erco-light-border-med); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--erco-green-deeper); }
+
+  footer {
+    background: var(--erco-dark);
+    padding: 32px 32px 40px;
+    border-top: 1px solid var(--erco-dark-border);
+    margin-top: 0;
+  }
+  .footer-inner {
+    max-width: 1600px; margin: 0 auto;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11px; color: var(--erco-dark-text-muted);
+    flex-wrap: wrap; gap: 12px;
+  }
+  .footer-inner .brand-wordmark { font-size: 16px; color: var(--erco-dark-text); }
+
+  .project-marker-outer { background: transparent; border: none; }
+  .project-marker {
+    width: 14px; height: 14px; border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.45);
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .project-marker:hover {
+    transform: scale(1.4);
+    border-color: var(--erco-green);
+    box-shadow: 0 0 0 4px rgba(163,230,53,0.35), 0 4px 12px rgba(0,0,0,0.5);
+  }
+  .project-marker.selected {
+    transform: scale(1.5);
+    border-color: var(--erco-green);
+    box-shadow: 0 0 0 6px rgba(163,230,53,0.45), 0 4px 14px rgba(0,0,0,0.5);
+  }
+/* ============ ORDEN PÚBLICO - TOGGLE ============ */
+.op-control {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 1000;
+  background: rgba(255,255,255,0.98);
+  border: 1.5px solid var(--erco-light-border-med);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+  font-family: var(--font-body);
+  min-width: 190px;
+}
+.op-control h4 {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--erco-light-text);
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.op-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: 12px;
+  color: var(--erco-light-text);
+  cursor: pointer;
+  user-select: none;
+}
+.op-toggle input { cursor: pointer; accent-color: var(--erco-green-deeper); }
+.op-toggle .op-dot {
+  width: 12px; height: 12px; border-radius: 3px;
+  border: 1px solid rgba(0,0,0,0.15);
+}
+.op-dot.alto { background: #DC2626; }
+.op-dot.medio { background: #FBBF24; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <div class="brand">
+      <div class="brand-wordmark">ERCO</div>
+      <div class="brand-divider"></div>
+      <div class="brand-sub">Dashboard · M&amp;A · Seguridad</div>
+    </div>
+    <div class="nav-right">
+      <div class="nav-pill">
+        <span class="dot-green"></span>
+        <span id="dashboard-status">Portafolio Colombia</span>
+      </div>
+      <div class="nav-user">
+        <i class="fa-regular fa-calendar" style="margin-right:6px;color:var(--erco-green);"></i><span id="current-date"></span>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-inner">
+    <div class="pill"><i class="fa-solid fa-circle-radiation"></i> Auras de seguridad · Escala geográfica</div>
+    <h1>Panorama de seguridad de nuestro <span class="accent">portafolio solar</span></h1>
+    <p>Explora el índice de seguridad de nuestro portafolio. Cada proyecto proyecta un aura de color según su nivel de riesgo — verde en zonas seguras, rojo en zonas de alto riesgo, gris donde no hay operaciones ERCO. Las auras respetan la escala geográfica y son consistentes a cualquier nivel de zoom.</p>
+  </div>
+</section>
+
+<div class="content-wrap">
+  <div class="stats-bar" id="stats-bar"></div>
+
+  <main>
+    <section class="panel">
+      <div class="panel-header">
+        <div class="title"><i class="fa-solid fa-circle"></i> Proyectos</div>
+        <span class="pill-small" id="proj-count">0</span>
+      </div>
+      <div class="panel-body">
+        <div class="search-wrap">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" class="search-box" id="search" placeholder="Buscar proyecto, municipio...">
+        </div>
+        <button class="btn-reset" onclick="resetSelection()">
+          <i class="fa-solid fa-rotate-left"></i> Ver toda Colombia
+        </button>
+        <ul class="project-list" id="project-list"></ul>
+      </div>
+    </section>
+
+    <section class="panel map-panel">
+      <div class="panel-header">
+        <div class="title"><i class="fa-solid fa-circle"></i> Mapa Colombia · Auras de Seguridad</div>
+        <span class="pill-small" id="map-status">Cargando…</span>
+      </div>
+      <div class="panel-body">
+        <div class="map-toast" id="map-toast"></div>
+        <div class="map-loader" id="map-loader">
+          <div class="spinner"></div>
+          <div class="text">Cargando geografía de Colombia…</div>
+        </div>
+<div class="op-control">
+  <h4><i class="fa-solid fa-shield-halved"></i> Orden Público</h4>
+  <label class="op-toggle">
+    <input type="checkbox" id="toggle-alto" checked>
+    <span class="op-dot alto"></span>
+    <span>Riesgo Alto</span>
+  </label>
+  <label class="op-toggle">
+    <input type="checkbox" id="toggle-medio" checked>
+    <span class="op-dot medio"></span>
+    <span>Riesgo Medio</span>
+  </label>
+</div>
+        <div id="map"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <div class="title"><i class="fa-solid fa-circle"></i> Análisis</div>
+        <span class="pill-small" id="detail-badge">Colombia</span>
+      </div>
+      <div class="panel-body" id="details-panel"></div>
+    </section>
+  </main>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="brand-wordmark">ERCO</div>
+    <div>Energía limpia, económica y digital · Dashboard interno M&amp;A</div>
+  </div>
+</footer>
+
+<script>
+const COORDS = {
+  "Hobo": [2.58, -75.45],
+  "El Copey": [10.15, -73.96],
+  "Yopal": [5.34, -72.40],
+  "Tibasosa": [5.75, -72.99],
+  "Flandes": [4.29, -74.82],
+  "Cimitarra": [6.32, -73.95],
+  "Galapa": [10.90, -74.88],
+  "El Paso": [9.66, -73.75],
+  "Chinchiná": [4.98, -75.63],
+  "Altamira": [2.06, -75.79],
+  "La Virginia": [4.90, -75.88],
+  "Tauramena": [5.02, -72.75],
+  "Cúcuta": [7.90, -72.50],
+  "Duitama": [5.83, -73.03],
+  "Zona Bananera": [10.79, -74.15],
+  "Aracataca": [10.59, -74.19],
+  "Fundación": [10.52, -74.19],
+  "Puerto Salgar": [5.47, -74.65],
+  "Neiva": [2.93, -75.28],
+  "San Sebastián de Mariquita": [5.20, -74.89],
+  "Armero": [4.97, -74.90]
+};
+
+const seguridadData = [
+  { proyecto: "La Achira",        extorsion: 1, hurto: 1, homicidio: 1, seguridad: 1, municipio: "Hobo",                          departamento: "Huila" },
+  { proyecto: "Las Palmeras",     extorsion: 2, hurto: 2, homicidio: 1, seguridad: 2, municipio: "El Copey",                      departamento: "Cesar" },
+  { proyecto: "Yopal",            extorsion: 2, hurto: 2, homicidio: 2, seguridad: 2, municipio: "Yopal",                         departamento: "Casanare" },
+  { proyecto: "Bochica",          extorsion: 1, hurto: 1, homicidio: 1, seguridad: 1, municipio: "Tibasosa",                      departamento: "Boyacá" },
+  { proyecto: "Flandes",          extorsion: 1, hurto: 2, homicidio: 3, seguridad: 2, municipio: "Flandes",                       departamento: "Tolima" },
+  { proyecto: "Sol de Cimitarra", extorsion: 1, hurto: 1, homicidio: 1, seguridad: 1, municipio: "Cimitarra",                     departamento: "Santander" },
+  { proyecto: "Colina II",        extorsion: 1, hurto: 3, homicidio: 2, seguridad: 2, municipio: "Galapa",                        departamento: "Atlántico" },
+  { proyecto: "La Loma",          extorsion: 2, hurto: 2, homicidio: 2, seguridad: 2, municipio: "El Paso",                       departamento: "Cesar" },
+  { proyecto: "La Paloma",        extorsion: 1, hurto: 1, homicidio: 1, seguridad: 1, municipio: "Chinchiná",                     departamento: "Caldas" },
+  { proyecto: "Yuma",             extorsion: 2, hurto: 2, homicidio: 1, seguridad: 2, municipio: "Cimitarra",                     departamento: "Santander" },
+  { proyecto: "Tesalia",          extorsion: 2, hurto: 2, homicidio: 2, seguridad: 3, municipio: "Altamira",                      departamento: "Huila" },
+  { proyecto: "La Virginia",      extorsion: 1, hurto: 2, homicidio: 2, seguridad: 2, municipio: "La Virginia",                   departamento: "Valle del Cauca" },
+  { proyecto: "Zaino",            extorsion: 1, hurto: 2, homicidio: 3, seguridad: 1, municipio: "Tauramena",                     departamento: "Casanare" },
+  { proyecto: "Frontera",         extorsion: 3, hurto: 3, homicidio: 3, seguridad: 4, municipio: "Cúcuta",                        departamento: "Norte de Santander" },
+  { proyecto: "Higueras",         extorsion: 1, hurto: 1, homicidio: 1, seguridad: 1, municipio: "Duitama",                       departamento: "Boyacá" },
+  { proyecto: "Guacamayal",       extorsion: 2, hurto: 2, homicidio: 3, seguridad: 3, municipio: "Zona Bananera",                 departamento: "Magdalena" },
+  { proyecto: "Cataca",           extorsion: 2, hurto: 2, homicidio: 2, seguridad: 2, municipio: "Aracataca",                     departamento: "Magdalena" },
+  { proyecto: "Puerta del Sol",   extorsion: 2, hurto: 2, homicidio: 2, seguridad: 2, municipio: "Fundación",                     departamento: "Magdalena" },
+  { proyecto: "Siatá",            extorsion: 1, hurto: 1, homicidio: 1, seguridad: 1, municipio: "Puerto Salgar",                 departamento: "Cundinamarca" },
+  { proyecto: "DSE Neiva",        extorsion: 1, hurto: 1, homicidio: 1, seguridad: 1, municipio: "Neiva",                         departamento: "Huila" },
+  { proyecto: "Tolima Norte",     extorsion: 1, hurto: 1, homicidio: 1, seguridad: 1, municipio: "San Sebastián de Mariquita",    departamento: "Tolima" },
+  { proyecto: "Abirá",            extorsion: 1, hurto: 1, homicidio: 1, seguridad: 1, municipio: "Armero",                        departamento: "Tolima" }
+];
+
+const COLORS = { 1: "#1a9850", 2: "#91cf60", 3: "#fee08b", 4: "#fc8d59", 5: "#d73027" };
+const LEVEL_LABEL = { 1: "Muy Seguro", 2: "Seguro", 3: "Moderado", 4: "Riesgo", 5: "Alto Riesgo" };
+const RECOMMENDATIONS = {
+  1: { icon: "✅", title: "Zona óptima", text: "Territorio óptimo para operación. Protocolos de seguridad estándar son suficientes. Continuar con monitoreo rutinario." },
+  2: { icon: "\uD83D\uDFE2", title: "Riesgo bajo", text: "Nivel de riesgo bajo. Mantener protocolos regulares y realizar monitoreo trimestral con las autoridades locales." },
+  3: { icon: "\uD83D\uDFE1", title: "Monitoreo activo", text: "Requiere monitoreo mensual, coordinación permanente con autoridades locales y evaluación semestral de indicadores." },
+  4: { icon: "\uD83D\uDFE0", title: "Riesgo elevado", text: "Reforzar seguridad perimetral, escoltas para desplazamientos, protocolos estrictos de acceso y revisión mensual del contexto." },
+  5: { icon: "\uD83D\uDD34", title: "Alto riesgo", text: "Evaluar viabilidad del proyecto. Requerir seguridad especializada, seguros ampliados y comité de crisis activo." }
+};
+function colorForLevel(level) { return COLORS[level] || "#CCCCCC"; }
+
+const GRADIENT_STOPS = [
+  { v: 1.0, c: [26, 152, 80] }, { v: 1.8, c: [102, 189, 99] },
+  { v: 2.6, c: [217, 239, 139] }, { v: 3.0, c: [254, 224, 139] },
+  { v: 3.4, c: [253, 174, 97] }, { v: 3.8, c: [244, 109, 67] },
+  { v: 5.0, c: [215, 48, 39] }
+];
+function colorForAvg(avg) {
+  if (avg === null || avg === undefined || isNaN(avg)) return "rgba(0,0,0,0.08)";
+  const v = Math.max(1, Math.min(5, avg));
+  for (let i = 0; i < GRADIENT_STOPS.length - 1; i++) {
+    const s1 = GRADIENT_STOPS[i], s2 = GRADIENT_STOPS[i+1];
+    if (v >= s1.v && v <= s2.v) {
+      const t = (v - s1.v) / (s2.v - s1.v);
+      const r = Math.round(s1.c[0] + (s2.c[0] - s1.c[0]) * t);
+      const g = Math.round(s1.c[1] + (s2.c[1] - s1.c[1]) * t);
+      const b = Math.round(s1.c[2] + (s2.c[2] - s1.c[2]) * t);
+      return `rgb(${r},${g},${b})`;
+    }
+  }
+  return "#CCCCCC";
+}
+
+function norm(s) {
+  return (s || "").toString().toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s]/g, "")
+    .replace(/\s+/g, " ").trim();
+}
+
+const AVG = {
+  extorsion: seguridadData.reduce((s,p)=>s+p.extorsion,0)/seguridadData.length,
+  hurto: seguridadData.reduce((s,p)=>s+p.hurto,0)/seguridadData.length,
+  homicidio: seguridadData.reduce((s,p)=>s+p.homicidio,0)/seguridadData.length,
+  seguridad: seguridadData.reduce((s,p)=>s+p.seguridad,0)/seguridadData.length
+};
+
+document.getElementById('current-date').textContent =
+  new Date().toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
+
+function renderStats() {
+  const counts = {1:0,2:0,3:0,4:0,5:0};
+  seguridadData.forEach(p => counts[p.seguridad]++);
+  document.getElementById('stats-bar').innerHTML = `
+    <div class="stat-card accent">
+      <div class="label">Total Proyectos</div>
+      <div class="value">${seguridadData.length}</div>
+      <div class="sub">${new Set(seguridadData.map(p=>p.departamento)).size} departamentos</div>
+    </div>
+    <div class="stat-card"><div class="label">Muy Seguro (1)</div><div class="value" style="color:${COLORS[1]}">${counts[1]}</div></div>
+    <div class="stat-card"><div class="label">Seguro (2)</div><div class="value" style="color:${COLORS[2]}">${counts[2]}</div></div>
+    <div class="stat-card"><div class="label">Moderado (3)</div><div class="value" style="color:${COLORS[3]}">${counts[3]}</div></div>
+    <div class="stat-card"><div class="label">Riesgo (4)</div><div class="value" style="color:${COLORS[4]}">${counts[4]}</div></div>
+    <div class="stat-card"><div class="label">Alto Riesgo (5)</div><div class="value" style="color:${COLORS[5]}">${counts[5]}</div></div>
+  `;
+}
+renderStats();
+
+function renderProjectList(filter = "") {
+  const list = document.getElementById('project-list');
+  const f = norm(filter);
+  const filtered = seguridadData.filter(p =>
+    !f || norm(p.proyecto).includes(f) || norm(p.municipio).includes(f) || norm(p.departamento).includes(f)
+  );
+  document.getElementById('proj-count').textContent = filtered.length;
+  list.innerHTML = filtered.map(p => `
+    <li class="project-item" data-proyecto="${p.proyecto}" onclick="selectProject('${p.proyecto.replace(/'/g,"\\'")}')">
+      <div style="min-width:0;flex:1;">
+        <div class="p-name">${p.proyecto}</div>
+        <div class="p-loc"><i class="fa-solid fa-location-dot"></i> ${p.municipio}, ${p.departamento}</div>
+      </div>
+      <div class="p-badge" style="background:${colorForLevel(p.seguridad)}">${p.seguridad}</div>
+    </li>
+  `).join('');
+}
+renderProjectList();
+document.getElementById('search').addEventListener('input', e => renderProjectList(e.target.value));
+
+// ============ MAP ============
+const map = L.map('map', { zoomControl: true, minZoom: 4, attributionControl: true }).setView([4.5, -74.2], 5.3);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+  attribution: '&copy; OpenStreetMap &copy; CARTO',
+  maxZoom: 19,
+  subdomains: 'abcd'
+}).addTo(map);
+
+let departmentsLayer = null;
+let aurasLayer = null;
+let projectMarkers = {};
+let selectedMarker = null;
+
+// LEGEND with discrete scale (fixed to level colors)
+const legend = L.control({ position: 'bottomright' });
+legend.onAdd = function() {
+  const div = L.DomUtil.create('div', 'info-legend');
+  div.innerHTML = `
+    <h4>Índice de Seguridad</h4>
+    <div class="sub">Auras por proyecto · escala geográfica</div>
+    <div class="legend-scale">
+      ${[1,2,3,4,5].map(l => `
+        <div class="legend-row">
+          <div class="legend-swatch" style="background:${COLORS[l]}"></div>
+          <b>${l}</b>
+          <span class="lvl-label">${LEVEL_LABEL[l]}</span>
+        </div>
+      `).join('')}
+    </div>
+    <div class="no-data"><i></i>Zonas grises: sin cobertura ERCO</div>
+  `;
+  return div;
+};
+legend.addTo(map);
+
+const GEOJSON_URLS = [
+  'https://gist.githubusercontent.com/john-guerra/43c7656821069d00dcbc/raw/32377ea414ec1d0d0c14ea4fac36cf3f7c5cf1e5/Colombia.geo.json',
+  'https://raw.githubusercontent.com/marcovega/colombia-json/master/colombia.geo.json',
+  'https://gist.githubusercontent.com/john-guerra/43c7656821069d00dcbc/raw/be6a6e239cd5b5b803c6e7c2ec405b793a9064dd/Colombia.geo.json'
+];
+
+function showToast(msg) {
+  const t = document.getElementById('map-toast');
+  t.innerHTML = `<span class="check">✓</span> ${msg}`;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ============ AURAS ============
+function addAurasLayer() {
+  if (aurasLayer) map.removeLayer(aurasLayer);
+  const circles = [];
+  seguridadData.forEach(p => {
+    if (!COORDS[p.municipio]) return;
+    const latlng = COORDS[p.municipio];
+    const color = colorForLevel(p.seguridad);
+    // 3 concentric rings (radius in METERS, so they scale with zoom faithfully)
+    // Outer very soft, inner more intense - same color
+    circles.push(L.circle(latlng, {
+      radius: 45000, color: color, fillColor: color,
+      fillOpacity: 0.10, stroke: false, interactive: false
+    }));
+    circles.push(L.circle(latlng, {
+      radius: 28000, color: color, fillColor: color,
+      fillOpacity: 0.20, stroke: false, interactive: false
+    }));
+    circles.push(L.circle(latlng, {
+      radius: 14000, color: color, fillColor: color,
+      fillOpacity: 0.35, stroke: false, interactive: false
+    }));
+  });
+  aurasLayer = L.layerGroup(circles).addTo(map);
+}
+
+function addProjectMarkers() {
+  seguridadData.forEach(p => {
+    if (!COORDS[p.municipio]) return;
+    const [lat, lng] = COORDS[p.municipio];
+    const icon = L.divIcon({
+      className: 'project-marker-outer',
+      html: `<div class="project-marker" data-proj="${p.proyecto}" style="background:${colorForLevel(p.seguridad)}"></div>`,
+      iconSize: [14, 14],
+      iconAnchor: [7, 7]
+    });
+    const marker = L.marker([lat, lng], { icon, riseOnHover: true, zIndexOffset: 500 })
+      .bindTooltip(
+        `<strong>${p.proyecto}</strong><br>${p.municipio}, ${p.departamento}<br>Nivel: <b style="color:${colorForLevel(p.seguridad)}">${p.seguridad} · ${LEVEL_LABEL[p.seguridad]}</b>`,
+        { direction: 'top', offset: [0, -8] }
+      )
+      .on('click', () => selectProject(p.proyecto))
+      .addTo(map);
+    projectMarkers[p.proyecto] = marker;
+  });
+}
+
+async function loadDepartments() {
+  const loader = document.getElementById('map-loader');
+  let geo = null;
+  for (const url of GEOJSON_URLS) {
+    try {
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error("HTTP " + resp.status);
+      geo = await resp.json();
+      break;
+    } catch (err) { console.warn("[MAP] falló:", url); }
+  }
+
+  if (geo) {
+    departmentsLayer = L.geoJSON(geo, {
+      style: {
+        weight: 0.8,
+        color: 'rgba(28,28,30,0.25)',
+        fillOpacity: 0,
+        fillColor: 'transparent'
+      },
+      interactive: false
+    }).addTo(map);
+    departmentsLayer.bringToBack();
+  }
+
+  addAurasLayer();
+  addProjectMarkers();
+
+  loader.style.display = 'none';
+  document.getElementById('map-status').textContent = 'Auras activas';
+  showToast(`Mapa cargado · ${seguridadData.length} auras generadas`);
+
+  try {
+    const bounds = L.latLngBounds(seguridadData.filter(p => COORDS[p.municipio]).map(p => COORDS[p.municipio]));
+    map.fitBounds(bounds, { padding: [50, 50] });
+  } catch(e) {}
+}
+
+loadDepartments();
+// ============ ORDEN PÚBLICO (KMZ → GeoJSON) ============
+const OP_STYLES = {
+  ALTO:  { color: '#991B1B', fillColor: '#DC2626', fillOpacity: 0.30, weight: 1.2 },
+  MEDIO: { color: '#B45309', fillColor: '#FBBF24', fillOpacity: 0.28, weight: 1.2 }
+};
+
+let opAltoLayer = null;
+let opMedioLayer = null;
+
+function styleOP(nivel) {
+  return (feature) => OP_STYLES[nivel] || OP_STYLES.MEDIO;
+}
+
+function onEachOPFeature(nivel) {
+  return (feature, layer) => {
+    const p = feature.properties || {};
+    const nombre = p.Name || p.MpNombre || p.nombre || 'Municipio';
+    const depto = p.Depto || p.departamento || '';
+    const color = nivel === 'ALTO' ? '#DC2626' : '#FBBF24';
+
+    layer.bindTooltip(
+      `<strong>${nombre}</strong>${depto ? '<br>' + depto : ''}<br>
+       Orden Público: <b style="color:${color}">Riesgo ${nivel}</b>`,
+      { direction: 'top', sticky: true }
+    );
+
+    layer.on('mouseover', function() {
+      this.setStyle({ fillOpacity: 0.50, weight: 2 });
+    });
+    layer.on('mouseout', function() {
+      this.setStyle(OP_STYLES[nivel]);
+    });
+  };
+}
+
+async function loadOrdenPublico() {
+  try {
+const altoGeo = (typeof OP_ALTO_GEOJSON !== 'undefined') ? OP_ALTO_GEOJSON : null;
+    const medioGeo = (typeof OP_MEDIO_GEOJSON !== 'undefined') ? OP_MEDIO_GEOJSON : null;
+    if (!altoGeo || !medioGeo) {
+      console.warn('[OP] Faltan las variables OP_ALTO_GEOJSON o OP_MEDIO_GEOJSON.');
+      return;
+    }
+
+    opAltoLayer = L.geoJSON(altoGeo, {
+      style: styleOP('ALTO'),
+      onEachFeature: onEachOPFeature('ALTO')
+    }).addTo(map);
+
+    opMedioLayer = L.geoJSON(medioGeo, {
+      style: styleOP('MEDIO'),
+      onEachFeature: onEachOPFeature('MEDIO')
+    }).addTo(map);
+
+    // Enviar debajo de las auras y marcadores
+    opAltoLayer.bringToBack();
+    opMedioLayer.bringToBack();
+    if (departmentsLayer) departmentsLayer.bringToBack();
+
+    const nAlto = altoGeo.features?.length || 0;
+    const nMedio = medioGeo.features?.length || 0;
+    showToast(`Orden Público cargado · ${nAlto + nMedio} municipios`);
+  } catch (err) {
+    console.warn('[OP] No se pudieron cargar los GeoJSON de orden público:', err);
+  }
+}
+
+// Toggles
+document.getElementById('toggle-alto').addEventListener('change', (e) => {
+  if (!opAltoLayer) return;
+  e.target.checked ? opAltoLayer.addTo(map) : map.removeLayer(opAltoLayer);
+});
+document.getElementById('toggle-medio').addEventListener('change', (e) => {
+  if (!opMedioLayer) return;
+  e.target.checked ? opMedioLayer.addTo(map) : map.removeLayer(opMedioLayer);
+});
+
+loadOrdenPublico();
+
+// ============ SELECTION ============
+function selectProject(proyectoName) {
+  const p = seguridadData.find(x => x.proyecto === proyectoName);
+  if (!p) return;
+
+  document.querySelectorAll('.project-item').forEach(el => el.classList.remove('active'));
+  const activeEl = document.querySelector(`.project-item[data-proyecto="${proyectoName}"]`);
+  if (activeEl) { activeEl.classList.add('active'); activeEl.scrollIntoView({behavior:'smooth', block:'nearest'}); }
+
+  document.getElementById('map-status').textContent = p.municipio;
+  document.getElementById('detail-badge').textContent = p.proyecto;
+  document.getElementById('dashboard-status').textContent = `${p.proyecto} · ${p.municipio}`;
+
+  document.querySelectorAll('.project-marker.selected').forEach(el => el.classList.remove('selected'));
+  const markerEl = document.querySelector(`.project-marker[data-proj="${proyectoName}"]`);
+  if (markerEl) markerEl.classList.add('selected');
+
+  if (COORDS[p.municipio]) {
+    const [lat, lng] = COORDS[p.municipio];
+    map.setView([lat, lng], 8, { animate: true });
+    addBigPin([lat, lng], p);
+  }
+
+  showProjectDetails(p);
+}
+
+function addBigPin(latlng, p) {
+  if (selectedMarker) map.removeLayer(selectedMarker);
+  const icon = L.divIcon({
+    className: 'custom-marker',
+    html: `<div style="
+      background:${colorForLevel(p.seguridad)};
+      width:42px;height:42px;border-radius:50% 50% 50% 0;
+      transform:rotate(-45deg);
+      border:3px solid #A3E635;
+      box-shadow:0 3px 20px rgba(0,0,0,0.4), 0 0 0 4px rgba(163,230,53,0.25);
+      display:flex;align-items:center;justify-content:center;
+      color:white;font-weight:700;font-size:14px;
+      font-family:'Sora',sans-serif;
+    "><span style="transform:rotate(45deg);">${p.seguridad}</span></div>`,
+    iconSize: [42, 42],
+    iconAnchor: [21, 42]
+  });
+  selectedMarker = L.marker(latlng, { icon, zIndexOffset: 1000 })
+    .addTo(map)
+    .bindPopup(`<strong>${p.proyecto}</strong><br>${p.municipio}, ${p.departamento}<br>Nivel: <b style="color:${colorForLevel(p.seguridad)}">${p.seguridad} · ${LEVEL_LABEL[p.seguridad]}</b>`)
+    .openPopup();
+}
+
+// ============ WIDGETS ============
+function compareBarWidget(label, value, avg) {
+  const pct = (value / 5) * 100;
+  const avgPct = (avg / 5) * 100;
+  return `
+    <div class="compare-row">
+      <div class="compare-label">
+        <span>${label}</span>
+        <span class="val">${value} / 5 · Prom ${avg.toFixed(2)}</span>
+      </div>
+      <div class="compare-bar-track">
+        <div class="compare-bar-fill" style="width:${pct}%;background:${colorForLevel(value)}">${value}</div>
+        <div class="compare-bar-avg" style="left:${avgPct}%"></div>
+      </div>
+    </div>
+  `;
+}
+
+function showProjectDetails(p) {
+  const siblings = seguridadData.filter(x =>
+    x.departamento === p.departamento && x.proyecto !== p.proyecto
+  );
+  const rec = RECOMMENDATIONS[p.seguridad];
+
+  document.getElementById('details-panel').innerHTML = `
+    <div class="details-card">
+      <h3>${p.proyecto}</h3>
+      <div class="subtitle"><i class="fa-solid fa-location-dot"></i> ${p.municipio}, ${p.departamento}</div>
+      <div class="metrics-grid">
+        <div class="metric" style="border-top-color:${colorForLevel(p.extorsion)}">
+          <div class="m-label">Extorsión</div>
+          <div class="m-value">${p.extorsion}</div>
+        </div>
+        <div class="metric" style="border-top-color:${colorForLevel(p.hurto)}">
+          <div class="m-label">Hurto</div>
+          <div class="m-value">${p.hurto}</div>
+        </div>
+        <div class="metric" style="border-top-color:${colorForLevel(p.homicidio)};grid-column:span 2">
+          <div class="m-label">Homicidio</div>
+          <div class="m-value">${p.homicidio}</div>
+        </div>
+      </div>
+      <div class="security-indicator">
+        <div class="s-label">Índice de Seguridad</div>
+        <div class="s-value" style="background:${colorForLevel(p.seguridad)}">${p.seguridad} / 5</div>
+        <div class="s-desc">${LEVEL_LABEL[p.seguridad]}</div>
+      </div>
+    </div>
+
+    <div class="widget-title"><i class="fa-solid fa-chart-simple"></i> Comparativo vs Portafolio</div>
+    <div class="widget">
+      ${compareBarWidget("Extorsión", p.extorsion, AVG.extorsion)}
+      ${compareBarWidget("Hurto", p.hurto, AVG.hurto)}
+      ${compareBarWidget("Homicidio", p.homicidio, AVG.homicidio)}
+    </div>
+
+    <div class="widget-title"><i class="fa-solid fa-lightbulb"></i> Recomendación</div>
+    <div class="recommendation" style="border-left-color:${colorForLevel(p.seguridad)}">
+      <div class="r-title">${rec.icon} ${rec.title}</div>
+      ${rec.text}
+    </div>
+
+    ${siblings.length ? `
+      <div class="widget-title"><i class="fa-solid fa-diagram-project"></i> Otros proyectos en ${p.departamento}</div>
+      <div>
+        ${siblings.map(s => `
+          <div class="mini-list-item" onclick="selectProject('${s.proyecto.replace(/'/g,"\\'")}')">
+            <div class="info">
+              <div class="n">${s.proyecto}</div>
+              <div class="l"><i class="fa-solid fa-location-dot"></i> ${s.municipio}</div>
+            </div>
+            <div class="mini-badge" style="background:${colorForLevel(s.seguridad)}">${s.seguridad}</div>
+          </div>
+        `).join('')}
+      </div>
+    ` : ''}
+  `;
+}
+
+function showColombiaOverview() {
+  const counts = {1:0,2:0,3:0,4:0,5:0};
+  seguridadData.forEach(p => counts[p.seguridad]++);
+  const safest = [...seguridadData].sort((a,b) => a.seguridad - b.seguridad).slice(0, 3);
+  const riskiest = [...seguridadData].sort((a,b) => b.seguridad - a.seguridad).slice(0, 3);
+
+  const byDept = {};
+  seguridadData.forEach(p => {
+    if (!byDept[p.departamento]) byDept[p.departamento] = { count: 0, sum: 0 };
+    byDept[p.departamento].count++;
+    byDept[p.departamento].sum += p.seguridad;
+  });
+  const deptList = Object.entries(byDept)
+    .map(([name, d]) => ({ name, count: d.count, avg: d.sum/d.count }))
+    .sort((a,b) => b.avg - a.avg);
+  const maxCount = Math.max(...deptList.map(d => d.count));
+
+  document.getElementById('details-panel').innerHTML = `
+    <div class="details-card">
+      <h3>Colombia · Vista General</h3>
+      <div class="subtitle"><i class="fa-solid fa-globe"></i> Portafolio completo ERCO Energy</div>
+      <div class="metrics-grid">
+        <div class="metric">
+          <div class="m-label">Proyectos</div>
+          <div class="m-value">${seguridadData.length}</div>
+        </div>
+        <div class="metric">
+          <div class="m-label">Departamentos</div>
+          <div class="m-value">${new Set(seguridadData.map(p=>p.departamento)).size}</div>
+        </div>
+        <div class="metric">
+          <div class="m-label">Municipios</div>
+          <div class="m-value">${new Set(seguridadData.map(p=>p.municipio)).size}</div>
+        </div>
+        <div class="metric" style="border-top-color:${colorForAvg(AVG.seguridad)}">
+          <div class="m-label">Seg. Promedio</div>
+          <div class="m-value" style="color:${colorForAvg(AVG.seguridad)}">${AVG.seguridad.toFixed(2)}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="widget-title"><i class="fa-solid fa-shield-check"></i> Top 3 · Mayor Seguridad</div>
+    <div>
+      ${safest.map((p, i) => `
+        <div class="mini-list-item" onclick="selectProject('${p.proyecto.replace(/'/g,"\\'")}')">
+          <div class="rank" style="background:${COLORS[1]};color:white;border-color:${COLORS[1]}">${i+1}</div>
+          <div class="info">
+            <div class="n">${p.proyecto}</div>
+            <div class="l"><i class="fa-solid fa-location-dot"></i> ${p.municipio}, ${p.departamento}</div>
+          </div>
+          <div class="mini-badge" style="background:${colorForLevel(p.seguridad)}">${p.seguridad}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="widget-title"><i class="fa-solid fa-triangle-exclamation"></i> Top 3 · Mayor Riesgo</div>
+    <div>
+      ${riskiest.map((p, i) => `
+        <div class="mini-list-item" onclick="selectProject('${p.proyecto.replace(/'/g,"\\'")}')">
+          <div class="rank" style="background:${colorForLevel(p.seguridad)};color:white;border-color:${colorForLevel(p.seguridad)}">${i+1}</div>
+          <div class="info">
+            <div class="n">${p.proyecto}</div>
+            <div class="l"><i class="fa-solid fa-location-dot"></i> ${p.municipio}, ${p.departamento}</div>
+          </div>
+          <div class="mini-badge" style="background:${colorForLevel(p.seguridad)}">${p.seguridad}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="widget-title"><i class="fa-solid fa-map"></i> Departamentos · orden por riesgo</div>
+    <div class="widget">
+      ${deptList.map(d => `
+        <div class="dept-bar-row">
+          <div class="dept-bar-name">${d.name}</div>
+          <div class="dept-bar-track">
+            <div class="dept-bar-fill" style="width:${(d.count/maxCount)*100}%;background:${colorForAvg(d.avg)}"></div>
+          </div>
+          <div class="dept-bar-info">
+            ${d.count}<span class="avg">· ${d.avg.toFixed(2)}</span>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function resetSelection() {
+  document.querySelectorAll('.project-item').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.project-marker.selected').forEach(el => el.classList.remove('selected'));
+  document.getElementById('map-status').textContent = 'Auras activas';
+  document.getElementById('detail-badge').textContent = 'Colombia';
+  document.getElementById('dashboard-status').textContent = 'Portafolio Colombia';
+  if (selectedMarker) { map.removeLayer(selectedMarker); selectedMarker = null; }
+  try {
+    const bounds = L.latLngBounds(seguridadData.filter(p => COORDS[p.municipio]).map(p => COORDS[p.municipio]));
+    map.fitBounds(bounds, { padding: [50, 50] });
+  } catch(e) { map.setView([4.5,-74.2],5.3); }
+  showColombiaOverview();
+}
+
+showColombiaOverview();
+</script>
+</body>
+</html>

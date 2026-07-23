@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard CAPEX &amp; Modelo Financiero — ERCO M&amp;A</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#F5F5F6;color:#121212;line-height:1.5}
+.hdr{background:linear-gradient(135deg,#121212 0%,#1a2e05 60%,#2a4a08 100%);color:#fff;padding:22px 30px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.hdr-left{display:flex;align-items:center;gap:16px}
+.logo-svg{width:44px;height:44px}
+.hdr h1{font-family:'Sora',sans-serif;font-size:1.35rem;font-weight:700}.hdr h1 span{color:#9ECC14}
+.hdr .sub{font-size:.76rem;color:rgba(255,255,255,.55);margin-top:2px;font-family:'Inter',sans-serif}
+.hdr .badge{background:#9ECC14;color:#121212;padding:5px 16px;border-radius:20px;font-size:.78rem;font-weight:700;font-family:'Sora',sans-serif}
+.fbar{background:#fff;border-bottom:2px solid #E8E8E9;padding:14px 30px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;position:sticky;top:0;z-index:100}
+.fbar label{font-size:.8rem;font-weight:600;color:#6A6B70}
+.dd{position:relative;display:inline-block}
+.dd-btn{background:#fff;border:1.5px solid #D0D0D2;padding:7px 14px;border-radius:10px;cursor:pointer;font-size:.8rem;min-width:180px;display:flex;justify-content:space-between;align-items:center;font-family:'Inter',sans-serif}
+.dd-btn:hover{border-color:#9ECC14}
+.dd-content{display:none;position:absolute;top:100%;left:0;background:#fff;border:1.5px solid #D0D0D2;border-radius:12px;box-shadow:0 24px 40px rgba(18,18,18,.08);z-index:200;max-height:300px;overflow-y:auto;min-width:220px;padding:6px 0}
+.dd-content.show{display:block}
+.dd-content label{display:flex;align-items:center;gap:8px;padding:6px 14px;font-size:.78rem;cursor:pointer;font-weight:400;color:#333}
+.dd-content label:hover{background:#f4f9e6}
+.dd-content label input{accent-color:#9ECC14}
+.dd-sep{border-top:1px solid #eee;margin:4px 0}
+.btn-reset{background:#F53333;color:#fff;border:none;padding:7px 16px;border-radius:10px;cursor:pointer;font-size:.8rem;font-weight:600;font-family:'Inter',sans-serif}
+.btn-reset:hover{background:#d92b2b}
+.container{max-width:1500px;margin:0 auto;padding:20px}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:22px}
+.kpi{background:#fff;border-radius:16px;padding:18px 20px;box-shadow:0 24px 40px rgba(18,18,18,.06);border-top:4px solid #9ECC14;transition:transform .2s}
+.kpi:hover{transform:translateY(-3px)}
+.kpi:nth-child(2){border-top-color:#45A824}.kpi:nth-child(3){border-top-color:#E3DD16}.kpi:nth-child(4){border-top-color:#00B7D3}.kpi:nth-child(5){border-top-color:#F99207}
+.kpi-label{font-size:.72rem;color:#6A6B70;text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-bottom:4px;font-family:'Inter',sans-serif}
+.kpi-val{font-size:1.5rem;font-weight:800;font-family:'Sora',sans-serif;color:#121212}.kpi-det{font-size:.7rem;color:#AEAFB2;margin-top:2px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:22px}
+.card{background:#fff;border-radius:16px;padding:20px;box-shadow:0 24px 40px rgba(18,18,18,.06)}
+.card.full{grid-column:1/-1}
+.card-title{font-size:.9rem;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:6px;font-family:'Sora',sans-serif;color:#121212}
+.dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+.cbox{position:relative;width:100%}
+.donut-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.donut-grid .cbox{height:280px}
+.donut-sel{display:flex;gap:16px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.donut-sel select{border:1.5px solid #D0D0D2;padding:7px 12px;border-radius:10px;font-size:.8rem;background:#fff;cursor:pointer;min-width:250px;font-family:'Inter',sans-serif}
+.donut-sel select:hover{border-color:#9ECC14}
+.donut-sel label{font-size:.82rem;font-weight:700;color:#333;font-family:'Sora',sans-serif}
+.tcard{background:#fff;border-radius:16px;padding:20px;box-shadow:0 24px 40px rgba(18,18,18,.06);overflow-x:auto;margin-bottom:22px}
+.tcard h2{font-size:1rem;font-weight:700;margin-bottom:12px;font-family:'Sora',sans-serif}
+table{width:100%;border-collapse:collapse;font-size:.74rem;font-family:'Inter',sans-serif}
+th{background:#121212;color:#fff;padding:8px 10px;text-align:center;font-size:.68rem;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;position:sticky;top:0}
+td{padding:6px 10px;text-align:center;border-bottom:1px solid #E8E8E9;white-space:nowrap}
+tr:hover{background:rgba(158,204,20,.04)}
+tr.rv td{background:rgba(69,168,36,.07)}tr.rr td{background:rgba(245,51,51,.05)}tr.rb td{background:rgba(0,183,211,.06)}
+.bg{display:inline-block;padding:2px 8px;border-radius:10px;font-weight:700;font-size:.68rem}
+.bg-g{background:rgba(69,168,36,.15);color:#2D7A14}.bg-r{background:rgba(245,51,51,.12);color:#C62222}
+.bg-b{background:rgba(0,183,211,.12);color:#007B96}.bg-y{background:#F0F0F0;color:#6A6B70}
+.footer{text-align:center;padding:16px;color:#AEAFB2;font-size:.72rem;border-top:1px solid #E8E8E9;margin-top:16px;font-family:'Inter',sans-serif}
+@media(max-width:900px){.grid{grid-template-columns:1fr}.hdr{padding:16px}.hdr h1{font-size:1.1rem}.donut-grid{grid-template-columns:1fr}}
+</style></head><body>
+<div class="hdr"><div class="hdr-left">
+<svg class="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+<ellipse cx="50" cy="42" rx="18" ry="30" fill="#45A824" transform="rotate(-30 50 50)" opacity=".9"/>
+<ellipse cx="50" cy="42" rx="18" ry="30" fill="#E3DD16" transform="rotate(30 50 50)" opacity=".85"/>
+<ellipse cx="50" cy="38" rx="16" ry="28" fill="#9ECC14" transform="rotate(0 50 50)" opacity=".9"/>
+<circle cx="50" cy="50" r="6" fill="#fff"/>
+</svg>
+<div><h1>Dashboard CAPEX &amp; Modelo Financiero &mdash; <span>Proyectos M&amp;A</span></h1>
+<div class="sub">Programa M&amp;A &middot; Junio 2026 &middot; Datos: Tablero_VF.xlsx (Hoja VF)</div></div></div>
+<div class="badge">ERCO Energ&iacute;a</div></div>
+
+<div class="fbar">
+<label>&#x1F50D; Filtros:</label>
+<div class="dd" id="ddProj">
+<div class="dd-btn" onclick="toggleDD('ddProjC')">Proyectos <span id="projCount">(11)</span> &#x25BE;</div>
+<div class="dd-content" id="ddProjC">
+<label><input type="checkbox" id="chkAll" checked onchange="toggleAll('pchk','chkAll')"> <b>Seleccionar todos</b></label>
+<div class="dd-sep"></div><div id="projChecks"></div>
+</div></div>
+<div class="dd" id="ddPot">
+<div class="dd-btn" onclick="toggleDD('ddPotC')">Potencia MW <span id="potCount">(6)</span> &#x25BE;</div>
+<div class="dd-content" id="ddPotC">
+<label><input type="checkbox" id="chkAllPot" checked onchange="toggleAll('potchk','chkAllPot')"> <b>Seleccionar todas</b></label>
+<div class="dd-sep"></div><div id="potChecks"></div>
+</div></div>
+<button class="btn-reset" onclick="resetFilters()">&#x21BA; Reset</button>
+</div>
+
+<div class="container">
+<div class="kpi-row">
+<div class="kpi"><div class="kpi-label">Proyectos</div><div class="kpi-val" id="k1">-</div><div class="kpi-det" id="k1d"></div></div>
+<div class="kpi"><div class="kpi-label">CAPEX Total</div><div class="kpi-val" id="k2">-</div><div class="kpi-det">Suma filtrada</div></div>
+<div class="kpi"><div class="kpi-label">Potencia Total</div><div class="kpi-val" id="k3">-</div><div class="kpi-det">MW nominales</div></div>
+<div class="kpi"><div class="kpi-label">Mejor TIR 25 A&ntilde;os BT</div><div class="kpi-val" id="k4">-</div><div class="kpi-det" id="k4d"></div></div>
+<div class="kpi"><div class="kpi-label">TIR BT &ge; 15%</div><div class="kpi-val" id="k5">-</div><div class="kpi-det">Proyectos sobre meta</div></div>
+</div>
+
+<div class="grid">
+<div class="card"><div class="card-title"><span class="dot" style="background:#9ECC14"></span>CAPEX Total por Proyecto (Miles de Millones COP)</div><div class="cbox" style="height:420px"><canvas id="cA"></canvas></div></div>
+<div class="card"><div class="card-title"><span class="dot" style="background:#E3DD16"></span>Parque vs Activos de Conexi&oacute;n</div><div class="cbox" style="height:420px"><canvas id="cB"></canvas></div></div>
+<div class="card"><div class="card-title"><span class="dot" style="background:#45A824"></span>TIR 25 A&ntilde;os Proyecto vs WACC (%) &mdash; L&iacute;nea verde: Meta TIR 10%</div><div class="cbox" style="height:360px"><canvas id="cD"></canvas></div></div>
+<div class="card"><div class="card-title"><span class="dot" style="background:#00B7D3"></span>TIR 25 A&ntilde;os Inversionista &mdash; L&iacute;nea verde: Meta 15%</div><div class="cbox" style="height:360px"><canvas id="cH"></canvas></div></div>
+<div class="card"><div class="card-title"><span class="dot" style="background:#F99207"></span>Irradiancia por Proyecto (kWh/m&sup2;) &mdash; L&iacute;nea verde: Referencia 2,000</div><div class="cbox" style="height:420px"><canvas id="cI"></canvas></div></div>
+<div class="card"><div class="card-title"><span class="dot" style="background:#F53333"></span>Irradiancia vs CAPEX USD/kWp &mdash; Sweet Spot: alta irradiancia + bajo costo</div><div class="cbox" style="height:420px"><canvas id="cJ"></canvas></div></div>
+<div class="card full"><div class="card-title"><span class="dot" style="background:#45A824"></span>Irradiancia vs TIR Inversionista &mdash; Sweet Spot: cuadrante superior derecho</div><div class="cbox" style="height:440px"><canvas id="cK"></canvas></div></div>
+<div class="card full"><div class="card-title"><span class="dot" style="background:#9ECC14"></span>Generaci&oacute;n P90 vs CAPEX Total</div><div class="cbox" style="height:380px"><canvas id="cE"></canvas></div></div>
+
+<div class="card full">
+<div class="card-title"><span class="dot" style="background:#00B7D3"></span>Comparaci&oacute;n CAPEX por Concepto &mdash; Parque &amp; Activos de Conexi&oacute;n</div>
+<div class="donut-sel">
+<label>Proyecto A:</label><select id="selA" onchange="renderDonuts()"></select>
+<label>Proyecto B:</label><select id="selB" onchange="renderDonuts()"></select>
+</div>
+<div class="donut-grid">
+<div><div style="text-align:center;font-weight:700;font-size:.82rem;margin-bottom:6px;font-family:'Sora',sans-serif" id="lblPA">Parque A</div><div class="cbox"><canvas id="cFA"></canvas></div></div>
+<div><div style="text-align:center;font-weight:700;font-size:.82rem;margin-bottom:6px;font-family:'Sora',sans-serif" id="lblPB">Parque B</div><div class="cbox"><canvas id="cFB"></canvas></div></div>
+<div><div style="text-align:center;font-weight:700;font-size:.82rem;margin-bottom:6px;font-family:'Sora',sans-serif" id="lblCA">Conexi&oacute;n A</div><div class="cbox"><canvas id="cGA2"></canvas></div></div>
+<div><div style="text-align:center;font-weight:700;font-size:.82rem;margin-bottom:6px;font-family:'Sora',sans-serif" id="lblCB">Conexi&oacute;n B</div><div class="cbox"><canvas id="cGB2"></canvas></div></div>
+</div></div>
+
+<div class="card full"><div class="card-title"><span class="dot" style="background:#5D7C0E"></span>CAPEX USD/kWp vs Viabilidad Financiera &mdash; Banda gris: Benchmark Solar 700-1,000 USD/kWp &mdash; Valores sin Margen</div><div class="cbox" style="height:440px"><canvas id="cG"></canvas></div></div>
+</div>
+
+<div class="tcard">
+<h2>&#x1F4CB; Tabla Consolidada <span style="font-weight:400;font-size:.78rem;color:#AEAFB2">(CAPEX en Miles de Millones COP &middot; Tasas en %)</span></h2>
+<table><thead><tr>
+<th>Proyecto</th><th>Estr.</th><th>Ver.</th><th>MWn</th><th>MWp</th><th>CAPEX Pq</th><th>CAPEX Cn</th><th>CAPEX Tot</th><th>CAPEX/MWn</th><th>USD/kWp</th><th>WACC%</th><th>TIR 25%</th><th>TIR BT%</th><th>Gen P50</th><th>Gen P90</th><th>Irrad.</th><th>OPEX</th><th>Mg.CAPEX</th><th>Mg.OPEX</th><th>Estado</th>
+</tr></thead><tbody id="tbody"></tbody></table>
+</div>
+<div class="footer">Dashboard generado autom&aacute;ticamente &middot; Datos: Tablero_VF.xlsx (Hoja VF &amp; Detalle_VF) &middot; Junio 2026 &middot; ERCO Energ&iacute;a</div>
+</div>
+
+<script>
+Chart.register(ChartDataLabels);
+Chart.defaults.plugins.datalabels={display:false};
+
+const M=[{"l":"LA ACHIRA (Tracker V1)","p":"LA ACHIRA","es":"Tracker","v":"V1","pn":60,"pp":75.47,"cpb":198.66,"ccb":42.63,"ctb":241.29,"cmb":4.02,"cusd":841.4,"w":10.91,"t":5.56,"tb":6.56,"g5":132.04,"g9":123.04,"ox":2.91,"mc":20,"mo":28,"irr":1850,"e":"TIRL"},{"l":"LAS PALMERAS (Tracker VF)","p":"LAS PALMERAS","es":"Tracker","v":"VF","pn":200,"pp":260.35,"cpb":516.8,"ccb":154.62,"ctb":671.41,"cmb":3.36,"cusd":678.7,"w":10.13,"t":8.57,"tb":11.59,"g5":543.8,"g9":506.7,"ox":13.42,"mc":22,"mo":28,"irr":2095.6,"e":"TIR10"},{"l":"YOPAL (Tracker V4)","p":"YOPAL","es":"Tracker","v":"V4","pn":19.9,"pp":26.44,"cpb":69.67,"ccb":11.73,"ctb":81.40,"cmb":4.09,"cusd":810.2,"w":10.19,"t":9.9,"tb":12.96,"g5":49.89,"g9":48.42,"ox":1.25,"mc":20,"mo":null,"irr":1955.1,"e":"TIR10"},{"l":"YOPAL (Tracker VF)","p":"YOPAL","es":"Tracker","v":"VF","pn":19.9,"pp":26.44,"cpb":60.77,"ccb":5.78,"ctb":66.55,"cmb":3.34,"cusd":662.4,"w":10.19,"t":9.9,"tb":12.96,"g5":49.89,"g9":48.42,"ox":1.25,"mc":20,"mo":null,"irr":1955.1,"e":"TIR10"},{"l":"BOCHICA (Fija VF)","p":"BOCHICA","es":"Fija","v":"VF","pn":19.9,"pp":24.23,"cpb":62.68,"ccb":3.44,"ctb":66.13,"cmb":3.32,"cusd":718.2,"w":11.23,"t":7.68,"tb":13.47,"g5":49.18,"g9":45.83,"ox":1.6,"mc":22,"mo":28,"irr":1944.5,"e":"TIR10"},{"l":"FLANDES (Fija VF)","p":"FLANDES","es":"Fija","v":"VF","pn":9.9,"pp":13.98,"cpb":33.04,"ccb":4.44,"ctb":37.48,"cmb":3.79,"cusd":705.5,"w":10.83,"t":7.5,"tb":9.47,"g5":23.01,"g9":21.0,"ox":0.85,"mc":20,"mo":null,"irr":2009.1,"e":"TIRL"},{"l":"SOL DE CIMITARRA (Fija VF)","p":"SOL DE CIMITARRA","es":"Fija","v":"VF","pn":9.9,"pp":13.76,"cpb":32.73,"ccb":3.63,"ctb":36.37,"cmb":3.67,"cusd":695.5,"w":null,"t":null,"tb":null,"g5":21.84,"g9":20.35,"ox":0.86,"mc":null,"mo":null,"irr":1937.9,"e":"Sin datos"},{"l":"COLINA II (Tracker VF)","p":"COLINA II","es":"Tracker","v":"VF","pn":9.9,"pp":14.07,"cpb":31.55,"ccb":4.93,"ctb":36.48,"cmb":3.68,"cusd":682.3,"w":10.44,"t":10.63,"tb":15.33,"g5":24.81,"g9":23.12,"ox":1.03,"mc":20,"mo":null,"irr":1984.0,"e":"TIR10"},{"l":"LA LOMA (Tracker VF)","p":"LA LOMA","es":"Tracker","v":"VF","pn":200,"pp":280,"cpb":614.93,"ccb":73.19,"ctb":688.12,"cmb":3.44,"cusd":646.7,"w":10.04,"t":11.58,"tb":15.74,"g5":574.9,"g9":535.7,"ox":7.13,"mc":20,"mo":28,"irr":2088.4,"e":"TIR10"},{"l":"LA PALOMA (Tracker VF)","p":"LA PALOMA","es":"Tracker","v":"VF","pn":40,"pp":47.2,"cpb":132.77,"ccb":30.93,"ctb":163.7,"cmb":4.09,"cusd":912.7,"w":null,"t":null,"tb":null,"g5":80.21,"g9":74.75,"ox":2.56,"mc":null,"mo":null,"irr":1869.0,"e":"Sin datos"},{"l":"YUMA (Tracker VF)","p":"YUMA","es":"Tracker","v":"VF","pn":200,"pp":212.52,"cpb":787.04,"ccb":131.75,"ctb":918.79,"cmb":4.59,"cusd":1137.7,"w":13.36,"t":0.3,"tb":-1.2,"g5":363.78,"g9":339.0,"ox":18.09,"mc":13,"mo":0,"irr":2075.2,"e":"TIRL"},{"l":"TESALIA (Tracker VF)","p":"TESALIA","es":"Tracker","v":"VF","pn":80,"pp":104.4,"cpb":309.13,"ccb":64.04,"ctb":373.16,"cmb":4.66,"cusd":940.6,"w":11.38,"t":3.56,"tb":4.94,"g5":174.88,"g9":162.96,"ox":4.57,"mc":22,"mo":28,"irr":1817.4,"e":"TIRL"}];
+
+const P=["BOCHICA","COLINA II","FLANDES","LA ACHIRA","LA LOMA","LA PALOMA","LAS PALMERAS","SOL DE CIMITARRA","TESALIA","YOPAL","YUMA"];
+const POTS=[9.9,19.9,40,60,80,200];
+const PQ_LBL=["EQ. MAYORES","CIVIL","MEC\u00c1NICO","LOG\u00cdSTICA","EL\u00c9CTRICO","INGENIER\u00cdA","AMBIENTAL","OTROS"];
+const CN_LBL=["SE Elevadora","L\u00ednea conexi\u00f3n","Subestaci\u00f3n"];
+const PQ_COL=['#9ECC14','#00B7D3','#E3DD16','#F53333','#45A824','#F99207','#7DA60C','#6A6B70'];
+const CN_COL=['#5D7C0E','#F99207','#00B7D3'];
+
+const DET={
+"LA ACHIRA (Tracker V1)":{pq:[54.91,52.89,36.91,18.90,15.83,0.87,11.09,7.26],cn:[35.01,2.67,4.95]},
+"LAS PALMERAS (Tracker VF)":{pq:[168.52,91.07,104.30,47.85,66.91,2.97,23.24,11.93],cn:[109.95,25.60,19.06]},
+"YOPAL (Tracker V4)":{pq:[20.61,12.92,13.09,10.83,4.96,0.57,3.29,3.40],cn:[0,3.50,8.23]},
+"YOPAL (Tracker VF)":{pq:[19.08,10.64,12.41,7.62,4.58,0.50,2.79,3.15],cn:[0,2.75,3.03]},
+"BOCHICA (Fija VF)":{pq:[17.48,10.84,15.67,9.65,4.34,0.55,1.04,3.10],cn:[0,2.05,1.40]},
+"FLANDES (Fija VF)":{pq:[10.75,5.13,4.74,4.52,2.85,0.78,1.74,2.53],cn:[0,2.15,2.29]},
+"SOL DE CIMITARRA (Fija VF)":{pq:[10.62,5.52,4.52,4.31,2.85,0.84,1.56,2.52],cn:[0,2.16,1.47]},
+"COLINA II (Tracker VF)":{pq:[10.07,5.02,5.11,5.12,2.68,0.42,0.69,2.44],cn:[0,3.45,1.48]},
+"LA LOMA (Tracker VF)":{pq:[228.72,74.51,149.24,48.40,67.30,2.74,27.10,16.91],cn:[58.32,10.19,4.69]},
+"LA PALOMA (Tracker VF)":{pq:[38.57,34.08,17.90,16.90,12.19,0.86,6.08,6.19],cn:[19.79,6.40,4.74]},
+"YUMA (Tracker VF)":{pq:[139.76,260.15,102.74,68.59,173.89,3.82,20.26,17.83],cn:[44.29,65.96,21.50]},
+"TESALIA (Tracker VF)":{pq:[82.96,87.44,54.66,14.85,34.71,1.45,22.38,10.68],cn:[41.05,16.60,6.40]}
+};
+
+let CI={};
+const COL={g:'#45A824',o:'#E3DD16',r:'#F53333',b:'#00B7D3',t:'#9ECC14',p:'#F99207',gr:'#AEAFB2'};
+const SC=['#9ECC14','#00B7D3','#E3DD16','#F53333','#45A824','#F99207','#7DA60C','#BDE732','#5D7C0E','#0396B7','#6A6B70'];
+const NDD={datalabels:{display:false}};
+
+const pc=document.getElementById('projChecks');
+P.forEach(p=>{const lb=document.createElement('label');lb.innerHTML='<input type="checkbox" checked class="pchk" value="'+p+'" onchange="onChg()"> '+p;pc.appendChild(lb)});
+const potC=document.getElementById('potChecks');
+POTS.forEach(v=>{const lb=document.createElement('label');lb.innerHTML='<input type="checkbox" checked class="potchk" value="'+v+'" onchange="onChg()"> '+v+' MW';potC.appendChild(lb)});
+
+const selA=document.getElementById('selA'),selB=document.getElementById('selB');
+M.forEach((r,i)=>{selA.innerHTML+='<option value="'+r.l+'"'+(i===0?' selected':'')+'>'+r.l+'</option>';selB.innerHTML+='<option value="'+r.l+'"'+(i===1?' selected':'')+'>'+r.l+'</option>'});
+
+function toggleDD(id){document.querySelectorAll('.dd-content').forEach(el=>{if(el.id!==id)el.classList.remove('show')});document.getElementById(id).classList.toggle('show')}
+document.addEventListener('click',e=>{if(!e.target.closest('.dd'))document.querySelectorAll('.dd-content').forEach(el=>el.classList.remove('show'))});
+function toggleAll(cls,allId){const a=document.getElementById(allId).checked;document.querySelectorAll('.'+cls).forEach(c=>c.checked=a);renderAll()}
+function onChg(){
+  const ap=document.querySelectorAll('.pchk'),cp=[...ap].filter(c=>c.checked);document.getElementById('chkAll').checked=cp.length===ap.length;
+  const at=document.querySelectorAll('.potchk'),ct=[...at].filter(c=>c.checked);document.getElementById('chkAllPot').checked=ct.length===at.length;
+  renderAll();
+}
+function resetFilters(){document.getElementById('chkAll').checked=true;document.querySelectorAll('.pchk').forEach(c=>c.checked=true);document.getElementById('chkAllPot').checked=true;document.querySelectorAll('.potchk').forEach(c=>c.checked=true);renderAll()}
+function getFiltered(){
+  const selP=[...document.querySelectorAll('.pchk:checked')].map(c=>c.value);
+  const selPot=[...document.querySelectorAll('.potchk:checked')].map(c=>parseFloat(c.value));
+  let d=M.filter(r=>selP.includes(r.p)&&selPot.includes(r.pn));
+  document.getElementById('projCount').textContent='('+selP.length+')';
+  document.getElementById('potCount').textContent='('+selPot.length+')';
+  return d;
+}
+function destroyCharts(){Object.values(CI).forEach(c=>{try{c.destroy()}catch(e){}});CI={}}
+function fmt(v,d=2){return v==null?'\u2014':v.toLocaleString('es-CO',{minimumFractionDigits:d,maximumFractionDigits:d})}
+
+function updateKPIs(d){
+  document.getElementById('k1').textContent=d.length;
+  document.getElementById('k1d').textContent='de '+M.length+' total';
+  document.getElementById('k2').textContent='$'+fmt(d.reduce((s,r)=>s+r.ctb,0),1)+'B';
+  document.getElementById('k3').textContent=fmt(d.reduce((s,r)=>s+r.pn,0),1)+' MW';
+  const wt=d.filter(r=>r.tb!=null);
+  if(wt.length){const best=wt.reduce((a,b)=>a.tb>b.tb?a:b);document.getElementById('k4').textContent=fmt(best.tb)+'%';document.getElementById('k4d').textContent=best.l}
+  else{document.getElementById('k4').textContent='\u2014';document.getElementById('k4d').textContent=''}
+  const viable=d.filter(r=>r.tb!=null&&r.tb>=15).length;
+  const withData=d.filter(r=>r.tb!=null).length;
+  document.getElementById('k5').textContent=viable+' / '+withData;
+}
+
+function rA(d){
+  const s=d.slice().sort((a,b)=>a.ctb-b.ctb);
+  CI.A=new Chart(document.getElementById('cA'),{type:'bar',data:{labels:s.map(r=>r.l),datasets:[{label:'CAPEX Total',data:s.map(r=>r.ctb),backgroundColor:s.map((_,i,a)=>{const t=i/a.length;return 'rgba('+(Math.round(158-t*80))+','+(Math.round(204-t*60))+','+(Math.round(20+t*10))+','+(0.5+t*0.45)+')';}),borderRadius:6}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},...NDD,tooltip:{callbacks:{label:c=>'$'+fmt(c.raw,1)+'B COP'}}},scales:{x:{title:{display:true,text:'Miles de Millones COP',font:{weight:'bold'}},grid:{color:'#E8E8E9'}},y:{ticks:{font:{size:9}}}}}})
+}
+function rB(d){
+  const s=d.slice().sort((a,b)=>a.ctb-b.ctb);
+  CI.B=new Chart(document.getElementById('cB'),{type:'bar',data:{labels:s.map(r=>r.l),datasets:[{label:'Parque',data:s.map(r=>r.cpb),backgroundColor:'#9ECC14',borderRadius:6},{label:'Activos Conexi\u00f3n',data:s.map(r=>r.ccb),backgroundColor:'#F99207',borderRadius:6}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'},...NDD,tooltip:{callbacks:{label:c=>c.dataset.label+': $'+fmt(c.raw,1)+'B COP'}}},scales:{x:{stacked:true,title:{display:true,text:'Miles de Millones COP',font:{weight:'bold'}},grid:{color:'#E8E8E9'}},y:{stacked:true,ticks:{font:{size:9}}}}}})
+}
+function rD(d){
+  const f=d.filter(r=>r.w!=null&&r.t!=null);const ds=[];
+  f.forEach(r=>{let col=COL.r;if(r.t>=10)col=COL.g;else if(r.t>r.w)col=COL.o;ds.push({label:r.l,data:[{x:r.w,y:r.t,r:8}],backgroundColor:col+'CC',borderColor:col,borderWidth:2})});
+  ds.push({label:'TIR = WACC',type:'line',data:[{x:0,y:0},{x:16,y:16}],borderColor:'#F53333',borderDash:[6,4],borderWidth:2,pointRadius:0,fill:false});
+  ds.push({label:'Meta TIR 10%',type:'line',data:[{x:0,y:10},{x:16,y:10}],borderColor:'#45A824',borderDash:[8,4],borderWidth:2.5,pointRadius:0,fill:false});
+  CI.D=new Chart(document.getElementById('cD'),{type:'bubble',data:{datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:8},boxWidth:10}},...NDD,tooltip:{callbacks:{label:c=>{if(c.dataset.type==='line')return c.dataset.label;return c.dataset.label+' \u2014 WACC:'+c.raw.x+'% TIR:'+c.raw.y+'%'}}}},scales:{x:{title:{display:true,text:'WACC (%)',font:{weight:'bold'}},grid:{color:'#E8E8E9'},min:7,max:15},y:{title:{display:true,text:'TIR 25 a\u00f1os (%)',font:{weight:'bold'}},grid:{color:'#E8E8E9'},min:-3,max:14}}}})
+}
+function rH(d){
+  const f=d.filter(r=>r.w!=null&&r.tb!=null);const ds=[];
+  f.forEach(r=>{let col=COL.r;if(r.tb>=15)col=COL.g;else if(r.tb>r.w)col=COL.o;ds.push({label:r.l,data:[{x:r.w,y:r.tb,r:8}],backgroundColor:col+'CC',borderColor:col,borderWidth:2})});
+  ds.push({label:'Meta TIR BT 15%',type:'line',data:[{x:0,y:15},{x:20,y:15}],borderColor:'#45A824',borderDash:[8,4],borderWidth:2.5,pointRadius:0,fill:false});
+  CI.H=new Chart(document.getElementById('cH'),{type:'bubble',data:{datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:8},boxWidth:10}},...NDD,tooltip:{callbacks:{label:c=>{if(c.dataset.type==='line')return c.dataset.label;return c.dataset.label+' \u2014 WACC:'+c.raw.x+'% TIR BT:'+c.raw.y+'%'}}}},scales:{x:{title:{display:true,text:'WACC (%)',font:{weight:'bold'}},grid:{color:'#E8E8E9'},min:7,max:15},y:{title:{display:true,text:'TIR 25 a\u00f1os BT (%)',font:{weight:'bold'}},grid:{color:'#E8E8E9'},min:-3,max:20}}}})
+}
+function rI(d){
+  const s=d.filter(r=>r.irr!=null).slice().sort((a,b)=>a.irr-b.irr);
+  const colors=s.map(r=>r.irr>=2000?'#45A824':'#E3DD16');
+  const N=s.length;
+  CI.I=new Chart(document.getElementById('cI'),{type:'bar',data:{labels:s.map(r=>r.l),datasets:[
+    {label:'Irradiancia',data:s.map(r=>r.irr),backgroundColor:colors,borderRadius:6},
+    {label:'\u2265 2,000 kWh/m\u00b2',data:Array(N).fill(null),backgroundColor:'#45A824'},
+    {label:'< 2,000 kWh/m\u00b2',data:Array(N).fill(null),backgroundColor:'#E3DD16'},
+    {label:'Referencia 2,000',type:'line',data:Array(N).fill(2000),borderColor:'#45A824',borderDash:[8,4],borderWidth:2.5,pointRadius:0,fill:false}
+  ]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:9}}},...NDD,tooltip:{callbacks:{label:c=>{if(c.dataset.type==='line')return c.dataset.label;if(c.raw==null)return '';return c.raw.toLocaleString('es-CO')+' kWh/m\u00b2'}}}},scales:{x:{title:{display:true,text:'kWh/m\u00b2',font:{weight:'bold'}},grid:{color:'#E8E8E9'},min:1700,max:2200},y:{ticks:{font:{size:9}}}}}})
+}
+function rJ(d){
+  const f=d.filter(r=>r.irr!=null&&r.cusd!=null);const ds=[];
+  f.forEach(r=>{
+    let col=COL.gr;
+    if(r.tb!=null&&r.tb>=15) col=COL.g;
+    else if(r.tb!=null) col=COL.r;
+    ds.push({label:r.l,data:[{x:r.irr,y:r.cusd,r:8}],backgroundColor:col+'CC',borderColor:col,borderWidth:2});
+  });
+  ds.push({label:'TIR BT \u2265 15%',data:[],backgroundColor:'#45A824CC',borderColor:'#45A824',borderWidth:2,pointStyle:'circle'});
+  ds.push({label:'TIR BT < 15%',data:[],backgroundColor:'#F53333CC',borderColor:'#F53333',borderWidth:2,pointStyle:'circle'});
+  ds.push({label:'Sin datos financieros',data:[],backgroundColor:'#AEAFB2CC',borderColor:'#AEAFB2',borderWidth:2,pointStyle:'circle'});
+  ds.push({label:'Ref. 2,000 kWh/m\u00b2',type:'line',data:[{x:2000,y:0},{x:2000,y:1300}],borderColor:'#45A824',borderDash:[8,4],borderWidth:2,pointRadius:0,fill:false});
+  CI.J=new Chart(document.getElementById('cJ'),{type:'bubble',data:{datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:8},boxWidth:10}},...NDD,tooltip:{callbacks:{label:c=>{if(c.dataset.type==='line')return c.dataset.label;if(!c.raw||c.raw.x==null)return c.dataset.label;return c.dataset.label+' \u2014 Irrad: '+c.raw.x+' kWh/m\u00b2, '+c.raw.y+' USD/kWp'}}}},scales:{x:{title:{display:true,text:'Irradiancia (kWh/m\u00b2)',font:{weight:'bold'}},grid:{color:'#E8E8E9'},min:1750,max:2150},y:{title:{display:true,text:'CAPEX USD/kWp',font:{weight:'bold'}},grid:{color:'#E8E8E9'},min:400,max:1250}}}})
+}
+function rK(d){
+  const f=d.filter(r=>r.irr!=null&&r.tb!=null);const ds=[];
+  f.forEach(r=>{
+    let col=r.tb>=15?COL.g:COL.r;
+    ds.push({label:r.l,data:[{x:r.irr,y:r.tb,r:8}],backgroundColor:col+'CC',borderColor:col,borderWidth:2});
+  });
+  ds.push({label:'TIR BT \u2265 15%',data:[],backgroundColor:'#45A824CC',borderColor:'#45A824',borderWidth:2,pointStyle:'circle'});
+  ds.push({label:'TIR BT < 15%',data:[],backgroundColor:'#F53333CC',borderColor:'#F53333',borderWidth:2,pointStyle:'circle'});
+  ds.push({label:'Meta TIR BT 15%',type:'line',data:[{x:1750,y:15},{x:2150,y:15}],borderColor:'#45A824',borderDash:[8,4],borderWidth:2.5,pointRadius:0,fill:false});
+  ds.push({label:'Ref. 2,000 kWh/m\u00b2',type:'line',data:[{x:2000,y:-5},{x:2000,y:20}],borderColor:'#F99207',borderDash:[8,4],borderWidth:2,pointRadius:0,fill:false});
+  CI.K=new Chart(document.getElementById('cK'),{type:'bubble',data:{datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:9},boxWidth:10}},...NDD,tooltip:{callbacks:{label:c=>{if(c.dataset.type==='line')return c.dataset.label;if(!c.raw||c.raw.x==null)return c.dataset.label;return c.dataset.label+' \u2014 Irrad: '+c.raw.x+' kWh/m\u00b2, TIR BT: '+c.raw.y+'%'}}}},scales:{x:{title:{display:true,text:'Irradiancia (kWh/m\u00b2)',font:{weight:'bold'}},grid:{color:'#E8E8E9'},min:1750,max:2150},y:{title:{display:true,text:'TIR Inversionista (%)',font:{weight:'bold'}},grid:{color:'#E8E8E9'},min:-5,max:20}}}})
+}
+function rE(d){
+  const f=d.filter(r=>r.g9!=null);
+  const ds=f.map((r,i)=>({label:r.l,data:[{x:r.g9,y:r.ctb,r:Math.max(4,r.pn/8)}],backgroundColor:SC[i%SC.length]+'BB',borderColor:SC[i%SC.length],borderWidth:2}));
+  CI.E=new Chart(document.getElementById('cE'),{type:'bubble',data:{datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:8},boxWidth:10}},...NDD,tooltip:{callbacks:{label:c=>c.dataset.label+' \u2014 P90:'+c.raw.x+' GWh, CAPEX:$'+c.raw.y+'B'}}},scales:{x:{title:{display:true,text:'Generaci\u00f3n P90 (GWh)',font:{weight:'bold'}},grid:{color:'#E8E8E9'}},y:{title:{display:true,text:'CAPEX Total (B COP)',font:{weight:'bold'}},grid:{color:'#E8E8E9'}}}}})
+}
+function mkDonut(canvasId,labels,data,colors){
+  const total=data.reduce((a,b)=>a+b,0);
+  return new Chart(document.getElementById(canvasId),{type:'doughnut',data:{labels:labels,datasets:[{data:data,backgroundColor:colors,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:8},padding:8}},tooltip:{callbacks:{label:c=>{const pct=total>0?((c.raw/total)*100).toFixed(1):'0';return c.label+': $'+c.raw.toFixed(1)+'B ('+pct+'%)'}}},datalabels:{display:true,color:'#333',font:{size:9,weight:'bold'},formatter:(v)=>{const pct=total>0?((v/total)*100).toFixed(0):'0';return v>0?'$'+v.toFixed(1)+'B\n'+pct+'%':''}}}}})
+}
+function renderDonuts(){
+  ['FA','FB','GA2','GB2'].forEach(k=>{if(CI[k])try{CI[k].destroy()}catch(e){}});
+  const a=document.getElementById('selA').value;
+  const b=document.getElementById('selB').value;
+  const da=DET[a],db=DET[b];
+  document.getElementById('lblPA').textContent='Parque \u2014 '+a;
+  document.getElementById('lblPB').textContent='Parque \u2014 '+b;
+  document.getElementById('lblCA').textContent='Conexi\u00f3n \u2014 '+a;
+  document.getElementById('lblCB').textContent='Conexi\u00f3n \u2014 '+b;
+  if(da){CI.FA=mkDonut('cFA',PQ_LBL,da.pq,PQ_COL);CI.GA2=mkDonut('cGA2',CN_LBL,da.cn,CN_COL)}
+  if(db){CI.FB=mkDonut('cFB',PQ_LBL,db.pq,PQ_COL);CI.GB2=mkDonut('cGB2',CN_LBL,db.cn,CN_COL)}
+}
+function rG(d){
+  const f=d.filter(r=>r.cusd!=null).sort((a,b)=>a.cusd-b.cusd);
+  const colors=f.map(r=>{
+    if(r.tb==null) return COL.gr;
+    if(r.tb>=15) return COL.g;
+    return COL.r;
+  });
+  const maxV=Math.max(...f.map(r=>r.cusd),1200);const N=f.length;
+  CI.G=new Chart(document.getElementById('cG'),{type:'bar',data:{labels:f.map(r=>r.l),datasets:[
+    {label:'CAPEX USD/kWp',data:f.map(r=>r.cusd),backgroundColor:colors,borderRadius:6},
+    {label:'TIR BT \u2265 15%',data:Array(N).fill(null),backgroundColor:'#45A824',borderRadius:6},
+    {label:'TIR BT < 15%',data:Array(N).fill(null),backgroundColor:'#F53333',borderRadius:6},
+    {label:'Sin resultados financieros',data:Array(N).fill(null),backgroundColor:'#AEAFB2',borderRadius:6},
+    {label:'Benchmark 700',type:'line',data:Array(N).fill(700),borderColor:'rgba(90,90,90,.3)',borderDash:[5,5],borderWidth:1.5,pointRadius:0,fill:false},
+    {label:'Benchmark 1000',type:'line',data:Array(N).fill(1000),borderColor:'rgba(90,90,90,.3)',borderDash:[5,5],borderWidth:1.5,pointRadius:0,fill:'+1'}
+  ]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:9}}},...NDD,tooltip:{callbacks:{label:c=>{if(c.dataset.type==='line')return c.dataset.label+' USD/kWp';if(c.raw==null)return '';return c.raw.toLocaleString('es-CO')+' USD/kWp'}}}},scales:{x:{title:{display:true,text:'USD/kWp',font:{weight:'bold'}},grid:{color:'#E8E8E9'},max:maxV*1.1},y:{ticks:{font:{size:9}}}}}})
+}
+function updateTable(d){
+  const tb=document.getElementById('tbody');let html='';
+  d.forEach(r=>{
+    let cls='',badge='';
+    if(r.e==='TIR10'){cls='rb';badge='<span class="bg bg-b">TIR \u2265 10% \u2713</span>'}
+    else if(r.e==='TIRW'){cls='rv';badge='<span class="bg bg-g">TIR > WACC \u2713</span>'}
+    else if(r.e==='TIRL'){cls='rr';badge='<span class="bg bg-r">TIR < WACC \u2717</span>'}
+    else{badge='<span class="bg bg-y">Sin datos</span>'}
+    const f=(v,d2=2)=>v==null?'\u2014':v.toLocaleString('es-CO',{minimumFractionDigits:d2,maximumFractionDigits:d2});
+    const fmm=(v)=>v==null?'\u2014':v+'%';
+    html+='<tr class="'+cls+'"><td style="text-align:left;font-weight:600">'+r.p+'</td><td>'+r.es+'</td><td>'+r.v+'</td><td>'+r.pn+'</td><td>'+r.pp+'</td><td>'+f(r.cpb)+'</td><td>'+f(r.ccb)+'</td><td style="font-weight:700">'+f(r.ctb)+'</td><td>'+f(r.cmb)+'</td><td style="font-weight:600">'+f(r.cusd,0)+'</td><td>'+(r.w!=null?f(r.w)+'%':'\u2014')+'</td><td>'+(r.t!=null?f(r.t)+'%':'\u2014')+'</td><td>'+(r.tb!=null?f(r.tb)+'%':'\u2014')+'</td><td>'+f(r.g5,1)+'</td><td>'+f(r.g9,1)+'</td><td>'+(r.irr!=null?f(r.irr,1):'\u2014')+'</td><td>'+f(r.ox)+'</td><td>'+fmm(r.mc)+'</td><td>'+fmm(r.mo)+'</td><td>'+badge+'</td></tr>';
+  });
+  tb.innerHTML=html;
+}
+function renderAll(){const d=getFiltered();destroyCharts();updateKPIs(d);rA(d);rB(d);rD(d);rH(d);rI(d);rJ(d);rK(d);rE(d);renderDonuts();rG(d);updateTable(d)}
+Chart.defaults.font.family="'Inter',sans-serif";Chart.defaults.font.size=11;renderAll();
+</script></body></html>
