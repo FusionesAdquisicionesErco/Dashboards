@@ -790,7 +790,7 @@
 
     <section class="panel map-panel">
       <div class="panel-header">
-        <div class="title"><i class="fa-solid fa-circle"></i> Mapa Colombia · Auras de Seguridad</div>
+        <div class="title"><i class="fa-solid fa-circle"></i> Mapa Colombia · Auras según probabilidad de riesgo</div>
         <span class="pill-small" id="map-status">Cargando…</span>
       </div>
       <div class="panel-body">
@@ -883,15 +883,48 @@ const seguridadData = [
   { proyecto: "Abirá",            extorsion: 1, hurto: 1, homicidio: 1, seguridad: 1, municipio: "Armero",                        departamento: "Tolima" }
 ];
 
-const COLORS = { 1: "#1a9850", 2: "#91cf60", 3: "#fee08b", 4: "#fc8d59", 5: "#d73027" };
-const LEVEL_LABEL = { 1: "Muy Seguro", 2: "Seguro", 3: "Moderado", 4: "Riesgo", 5: "Alto Riesgo" };
-const RECOMMENDATIONS = {
-  1: { icon: "✅", title: "Zona óptima", text: "Territorio óptimo para operación. Protocolos de seguridad estándar son suficientes. Continuar con monitoreo rutinario." },
-  2: { icon: "\uD83D\uDFE2", title: "Riesgo bajo", text: "Nivel de riesgo bajo. Mantener protocolos regulares y realizar monitoreo trimestral con las autoridades locales." },
-  3: { icon: "\uD83D\uDFE1", title: "Monitoreo activo", text: "Requiere monitoreo mensual, coordinación permanente con autoridades locales y evaluación semestral de indicadores." },
-  4: { icon: "\uD83D\uDFE0", title: "Riesgo elevado", text: "Reforzar seguridad perimetral, escoltas para desplazamientos, protocolos estrictos de acceso y revisión mensual del contexto." },
-  5: { icon: "\uD83D\uDD34", title: "Alto riesgo", text: "Evaluar viabilidad del proyecto. Requerir seguridad especializada, seguros ampliados y comité de crisis activo." }
+const COLORS = {
+  1: "#22C55E", // Bajo
+  2: "#FACC15", // Medio
+  3: "#F97316", // Alto
+  4: "#DC2626"  // Extremadamente Alto
 };
+
+const LEVEL_LABEL = {
+  1: "Bajo",
+  2: "Medio",
+  3: "Alto",
+  4: "Extremadamente Alto"
+};
+
+const RECOMMENDATIONS = {
+
+  1: {
+    icon: "🟢",
+    title: "Probabilidad Baja",
+    text: "Zona con presencia institucional fuerte, sin reportes recientes de hechos violentos ni amenazas a la infraestructura o personal. Bajo nivel de criminalidad."
+  },
+
+  2: {
+    icon: "🟡",
+    title: "Probabilidad Media",
+    text: "Presencia esporádica de actores armados o criminales. Riesgo latente por extorsión, hurtos o alteración del orden público. Requiere protocolos preventivos básicos."
+  },
+
+  3: {
+    icon: "🟠",
+    title: "Probabilidad Alta",
+    text: "Evidencia de hechos violentos recientes (extorsión, bloqueos, amenazas directas, hurtos armados), presencia sostenida de GAO/GDO o debilidad institucional clara"
+  },
+
+  4: {
+    icon: "🔴",
+    title: "Probabilidad Extremadamente Alta",
+    text: "Zona con enfrentamientos armados, atentados a infraestructura, secuestros o control territorial de facto por grupos armados. Alta exposición de personal civil."
+  }
+
+};
+
 function colorForLevel(level) { return COLORS[level] || "#CCCCCC"; }
 
 const GRADIENT_STOPS = [
@@ -934,20 +967,37 @@ document.getElementById('current-date').textContent =
   new Date().toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
 
 function renderStats() {
-  const counts = {1:0,2:0,3:0,4:0,5:0};
-  seguridadData.forEach(p => counts[p.seguridad]++);
-  document.getElementById('stats-bar').innerHTML = `
-    <div class="stat-card accent">
-      <div class="label">Total Proyectos</div>
-      <div class="value">${seguridadData.length}</div>
-      <div class="sub">${new Set(seguridadData.map(p=>p.departamento)).size} departamentos</div>
-    </div>
-    <div class="stat-card"><div class="label">Muy Seguro (1)</div><div class="value" style="color:${COLORS[1]}">${counts[1]}</div></div>
-    <div class="stat-card"><div class="label">Seguro (2)</div><div class="value" style="color:${COLORS[2]}">${counts[2]}</div></div>
-    <div class="stat-card"><div class="label">Moderado (3)</div><div class="value" style="color:${COLORS[3]}">${counts[3]}</div></div>
-    <div class="stat-card"><div class="label">Riesgo (4)</div><div class="value" style="color:${COLORS[4]}">${counts[4]}</div></div>
-    <div class="stat-card"><div class="label">Alto Riesgo (5)</div><div class="value" style="color:${COLORS[5]}">${counts[5]}</div></div>
-  `;
+const counts = {1:0,2:0,3:0,4:0};
+
+seguridadData.forEach(p => counts[p.seguridad]++);
+
+document.getElementById('stats-bar').innerHTML = `
+<div class="stat-card accent">
+  <div class="label">Total Proyectos</div>
+  <div class="value">${seguridadData.length}</div>
+  <div class="sub">${new Set(seguridadData.map(p=>p.departamento)).size} departamentos</div>
+</div>
+
+<div class="stat-card">
+  <div class="label">Bajo (1)</div>
+  <div class="value" style="color:${COLORS[1]}">${counts[1]}</div>
+</div>
+
+<div class="stat-card">
+  <div class="label">Medio (2)</div>
+  <div class="value" style="color:${COLORS[2]}">${counts[2]}</div>
+</div>
+
+<div class="stat-card">
+  <div class="label">Alto (3)</div>
+  <div class="value" style="color:${COLORS[3]}">${counts[3]}</div>
+</div>
+
+<div class="stat-card">
+  <div class="label">Extremadamente Alto (4)</div>
+  <div class="value" style="color:${COLORS[4]}">${counts[4]}</div>
+</div>
+`;
 }
 renderStats();
 
@@ -989,10 +1039,10 @@ const legend = L.control({ position: 'bottomright' });
 legend.onAdd = function() {
   const div = L.DomUtil.create('div', 'info-legend');
   div.innerHTML = `
-    <h4>Índice de Seguridad</h4>
+    <h4>Probabilidad de Incidentes</h4>
     <div class="sub">Auras por proyecto · escala geográfica</div>
     <div class="legend-scale">
-      ${[1,2,3,4,5].map(l => `
+      ${[1,2,3,4].map(l => `
         <div class="legend-row">
           <div class="legend-swatch" style="background:${COLORS[l]}"></div>
           <b>${l}</b>
@@ -1235,13 +1285,13 @@ function addBigPin(latlng, p) {
 
 // ============ WIDGETS ============
 function compareBarWidget(label, value, avg) {
-  const pct = (value / 5) * 100;
-  const avgPct = (avg / 5) * 100;
+  const pct = (value / 4) * 100;
+  const avgPct = (avg / 4) * 100;
   return `
     <div class="compare-row">
       <div class="compare-label">
         <span>${label}</span>
-        <span class="val">${value} / 5 · Prom ${avg.toFixed(2)}</span>
+        <span class="val">${value} / 4 · Prom ${avg.toFixed(2)}</span>
       </div>
       <div class="compare-bar-track">
         <div class="compare-bar-fill" style="width:${pct}%;background:${colorForLevel(value)}">${value}</div>
@@ -1276,8 +1326,8 @@ function showProjectDetails(p) {
         </div>
       </div>
       <div class="security-indicator">
-        <div class="s-label">Índice de Seguridad</div>
-        <div class="s-value" style="background:${colorForLevel(p.seguridad)}">${p.seguridad} / 5</div>
+        <div class="s-label">Probabilidad de Ocurrencia de Incidentes</div>
+        <div class="s-value" style="background:${colorForLevel(p.seguridad)}">${p.seguridad} / 4</div>
         <div class="s-desc">${LEVEL_LABEL[p.seguridad]}</div>
       </div>
     </div>
@@ -1313,7 +1363,7 @@ function showProjectDetails(p) {
 }
 
 function showColombiaOverview() {
-  const counts = {1:0,2:0,3:0,4:0,5:0};
+  const counts = {1:0,2:0,3:0,4:0};
   seguridadData.forEach(p => counts[p.seguridad]++);
   const safest = [...seguridadData].sort((a,b) => a.seguridad - b.seguridad).slice(0, 3);
   const riskiest = [...seguridadData].sort((a,b) => b.seguridad - a.seguridad).slice(0, 3);
@@ -1353,7 +1403,7 @@ function showColombiaOverview() {
       </div>
     </div>
 
-    <div class="widget-title"><i class="fa-solid fa-shield-check"></i> Top 3 · Mayor Seguridad</div>
+    <div class="widget-title"><i class="fa-solid fa-shield-check"></i> Top 3 · Menor Riesgo</div>
     <div>
       ${safest.map((p, i) => `
         <div class="mini-list-item" onclick="selectProject('${p.proyecto.replace(/'/g,"\\'")}')">
