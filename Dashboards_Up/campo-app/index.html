@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Campo – Visitas</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0b5d4b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Campo">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="stylesheet" href="lib/leaflet.css">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header id="topbar">
+  <div class="brand">📍 Campo</div>
+  <span id="gpsChip" class="chip">GPS…</span>
+  <span id="netChip" class="chip warn" hidden>Sin conexión</span>
+  <button id="btnBase" class="chip btn" title="Cambiar mapa base">🛰️ Satélite</button>
+</header>
+
+<div id="map"></div>
+<div id="crosshair" hidden><i></i></div>
+<div id="pickBar" hidden>
+  <span>Mueve el mapa hasta dejar la mira sobre el punto</span>
+  <div><button id="pickCancel">Cancelar</button><button id="pickOk" class="primary">Confirmar</button></div>
+</div>
+
+<button id="btnLocate" class="fab small" title="Ir a mi ubicación">◎</button>
+<button id="btnAdd" class="fab">＋ Punto</button>
+
+<nav id="bottomnav">
+  <button data-sheet="sheetLayers"><span>🗂️</span>Capas</button>
+  <button data-sheet="sheetPoints"><span>📌</span>Puntos <b id="ptBadge" hidden>0</b></button>
+  <button data-sheet="sheetExport"><span>📦</span>Exportar</button>
+  <button data-sheet="sheetSettings"><span>⚙️</span>Ajustes</button>
+</nav>
+
+<div id="scrim" hidden></div>
+
+<!-- CAPAS -->
+<section class="sheet" id="sheetLayers" hidden>
+  <div class="sheet-head"><h2>Capas</h2><button class="x" data-close>✕</button></div>
+  <div class="sheet-body">
+    <label class="btn primary block" for="inLayer">＋ Cargar KMZ / KML / GeoJSON</label>
+    <input id="inLayer" type="file" accept=".kmz,.kml,.geojson,.json" multiple hidden>
+    <div id="layerList"></div>
+    <p class="hint">Las capas visibles quedan dibujadas en el minimapa de la marca de agua. Se guardan en el dispositivo.</p>
+  </div>
+</section>
+
+<!-- PUNTOS -->
+<section class="sheet" id="sheetPoints" hidden>
+  <div class="sheet-head"><h2>Puntos levantados</h2><button class="x" data-close>✕</button></div>
+  <div class="sheet-body"><div id="pointList"></div></div>
+</section>
+
+<!-- FORMULARIO DE PUNTO -->
+<section class="sheet" id="sheetPoint" hidden>
+  <div class="sheet-head"><h2 id="pointTitle">Nuevo punto</h2></div>
+  <div class="sheet-body">
+    <label>Nombre del punto / ubicación *
+      <input id="fName" type="text" maxlength="120" autocomplete="off" placeholder="Ej. Acceso norte, Torre 3…">
+    </label>
+    <label>Descripción
+      <textarea id="fDesc" rows="3" placeholder="Observaciones del punto"></textarea>
+    </label>
+    <div class="box">
+      <div class="box-title">Ubicación</div>
+      <div id="fCoords" class="coords">—</div>
+      <div class="btn-row">
+        <button id="locGps">📡 Mi GPS</button>
+        <button id="locCenter">🎯 Centro del mapa</button>
+        <button id="locPick">🗺️ Elegir en mapa</button>
+      </div>
+    </div>
+    <div class="box-title">Fotos <span id="photoCount" class="muted"></span></div>
+    <div id="photoGrid" class="photo-grid"></div>
+    <div class="btn-row">
+      <button id="btnCam" class="primary">📷 Tomar foto</button>
+      <button id="btnGal">🖼️ Galería</button>
+    </div>
+    <input id="inCam" type="file" accept="image/*" capture="environment" hidden>
+    <input id="inGal" type="file" accept="image/*" multiple hidden>
+    <p class="hint">La marca de agua (minimapa con capas, fecha, coordenadas y nombre) se aplica al guardar el punto.</p>
+  </div>
+  <div class="sheet-foot">
+    <button id="btnDelete" class="danger" hidden>Eliminar</button>
+    <button id="btnCancel">Cancelar</button>
+    <button id="btnSave" class="primary">Guardar punto</button>
+  </div>
+</section>
+
+<!-- EXPORTAR -->
+<section class="sheet" id="sheetExport" hidden>
+  <div class="sheet-head"><h2>Exportar paquete</h2><button class="x" data-close>✕</button></div>
+  <div class="sheet-body">
+    <div id="exportSummary" class="box"></div>
+    <label class="check"><input type="checkbox" id="optOrig"> Incluir también las fotos originales (sin marca de agua)</label>
+    <label class="check"><input type="checkbox" id="optKmz"> Generar además un KMZ con fotos incrustadas (pesa más)</label>
+    <button id="btnZip" class="primary block">⚙️ Generar paquete ZIP</button>
+    <div id="zipResult" class="box" hidden>
+      <div id="zipInfo"></div>
+      <div class="btn-row">
+        <button id="btnDownload" class="primary">⬇️ Descargar</button>
+        <button id="btnShare" hidden>📤 Compartir</button>
+      </div>
+    </div>
+    <p class="hint"><b>Contenido del ZIP:</b> <code>fotos/</code> (JPG con marca de agua y GPS en EXIF), <code>puntos.kml</code>, <code>puntos.geojson</code> y <code>puntos.csv</code>.</p>
+    <button id="btnWipe" class="danger block">🗑️ Borrar los puntos del dispositivo</button>
+    <p class="hint">Descarga el ZIP antes de borrar. Esta acción no se puede deshacer.</p>
+  </div>
+</section>
+
+<!-- AJUSTES -->
+<section class="sheet" id="sheetSettings" hidden>
+  <div class="sheet-head"><h2>Ajustes</h2><button class="x" data-close>✕</button></div>
+  <div class="sheet-body">
+    <label>Proyecto / visita (opcional, aparece en la marca de agua)
+      <input id="sProject" type="text" maxlength="80" placeholder="Ej. Colina II – Visita 15 oct">
+    </label>
+    <label>Zoom del minimapa: <b id="sZoomVal">17</b>
+      <input id="sZoom" type="range" min="13" max="20" step="1">
+      <small class="muted">Menor = más área visible · Mayor = más detalle</small>
+    </label>
+    <label>Tamaño máximo de la foto
+      <select id="sMaxPx">
+        <option value="1280">1280 px (liviana)</option>
+        <option value="1600">1600 px (recomendada)</option>
+        <option value="2048">2048 px (alta)</option>
+      </select>
+    </label>
+    <div class="box">
+      <div class="box-title">Instalar en el celular</div>
+      <button id="btnInstall" class="primary" hidden>📲 Instalar app</button>
+      <p class="hint"><b>Android (Chrome):</b> menú ⋮ → «Instalar app» o «Agregar a pantalla de inicio».<br>
+      <b>iPhone (Safari):</b> botón Compartir → «Agregar a pantalla de inicio».</p>
+    </div>
+    <p class="hint">Versión 1.0 · Mapas: Esri World Imagery y OpenStreetMap. Los datos se guardan solo en este dispositivo.</p>
+  </div>
+</section>
+
+<!-- Visor de fotos -->
+<div id="viewer" hidden>
+  <img id="viewerImg" alt="">
+  <div id="viewerNote"></div>
+  <div class="viewer-bar"><button id="viewerDel" class="danger">🗑️ Quitar foto</button><button id="viewerClose" class="primary">Cerrar</button></div>
+</div>
+
+<div id="busy" hidden><div class="busy-card"><div class="spin"></div><div id="busyMsg"></div><div class="bar"><i id="busyBar"></i></div></div></div>
+<div id="toast" hidden></div>
+
+<script src="lib/leaflet.js"></script>
+<script src="lib/jszip.min.js"></script>
+<script src="js/db.js"></script>
+<script src="js/geo.js"></script>
+<script src="js/exif.js"></script>
+<script src="js/watermark.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
