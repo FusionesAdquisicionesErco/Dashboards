@@ -1,0 +1,170 @@
+/* JMaps M&A · ERCO — estilos según Brand Identity Guidelines (ago-2024)
+   Color: Primary #9ECC14 · Yellow #E3DD16 · Green #45A824 · Gray #F5F5F6 · Black #121212
+   Tipografía: Sora (marca) + Inter (cuerpo) · Radio 32 px en tarjetas, píldora en botones/tags
+   Íconos: un solo estilo (trazo regular) */
+@font-face{font-family:'Sora';font-style:normal;font-weight:100 800;font-display:swap;src:url(fonts/sora-latin.woff2) format('woff2')}
+@font-face{font-family:'Inter';font-style:normal;font-weight:100 900;font-display:swap;src:url(fonts/inter-latin.woff2) format('woff2')}
+
+:root{
+  --black:#121212; --gray:#F5F5F6; --white:#fff;
+  --lime:#9ECC14; --lime-l:#BDE732; --lime-d:#7DA60C; --green:#45A824; --yellow:#E3DD16;
+  --green-d:#3F5412; --green-dd:#202E05;
+  --blue:#00B7D3; --orange:#F99207; --red:#F53333;
+  --n-100:#E8EAEB; --n-300:#CBCFD1; --n-500:#8C9396; --n-700:#4A4F52;
+  --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
+  --top-h:56px; --nav-h:64px;
+  --r-card:32px; --r-md:24px; --r-sm:16px; --r-pill:999px;
+  --shadow:0 24px 40px rgba(18,18,18,.06), 0 2px 8px rgba(18,18,18,.08);
+  --f-brand:'Sora',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+  --f-body:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;font-family:var(--f-body);color:var(--black);background:var(--black);overscroll-behavior:none}
+[hidden]{display:none!important}
+.i{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+
+/* Botones: píldora */
+button,.btn{font:600 14px/1 var(--f-brand);display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--black);background:var(--white);color:var(--black);padding:13px 18px;border-radius:var(--r-pill);cursor:pointer;text-align:center;transition:transform .08s,filter .15s}
+button:active,.btn:active{transform:scale(.97);filter:brightness(.95)}
+button.primary,.btn.primary{background:var(--lime);border-color:var(--lime);color:var(--black);font-weight:700}
+button.danger{color:var(--red);border-color:var(--red);background:var(--white)}
+button.block,.btn.block{display:flex;width:100%;margin:16px 0}
+button:disabled{opacity:.4;pointer-events:none}
+button.icon-only{padding:13px;flex:none}
+code{background:var(--n-100);padding:1px 6px;border-radius:8px;font-size:.9em}
+
+/* Barra superior (fondo Black de marca) */
+#topbar{position:fixed;z-index:1000;top:0;left:0;right:0;height:calc(var(--top-h) + var(--sat));padding:var(--sat) 16px 0;display:flex;align-items:center;gap:8px;background:var(--black);color:var(--white);border-bottom:1px solid rgba(255,255,255,.08)}
+.logo-mark{width:32px;height:32px;flex:none}
+.app-name{display:flex;flex-direction:column;margin-right:auto;min-width:0;line-height:1.15}
+.app-name b{font:700 16px var(--f-brand);letter-spacing:-.01em;white-space:nowrap}
+.app-name small{font:400 11px var(--f-body);color:var(--n-300);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip{display:inline-flex;align-items:center;gap:8px;font:500 12px var(--f-body);padding:7px 12px;border-radius:var(--r-pill);background:rgba(255,255,255,.12);color:var(--white);border:1px solid rgba(255,255,255,.18);white-space:nowrap}
+.chip .dot{width:8px;height:8px;border-radius:50%;background:var(--n-500);flex:none}
+.chip.ok .dot{background:var(--lime)}.chip.warn .dot{background:var(--orange)}.chip.bad .dot{background:var(--red)}
+button.chip{padding:7px 12px;font:500 12px var(--f-body)}
+
+/* Aviso de ubicación */
+#gpsBanner{position:fixed;z-index:1050;left:16px;right:16px;top:calc(var(--top-h) + var(--sat) + 8px);display:flex;align-items:center;gap:12px;background:var(--black);color:var(--white);border-radius:var(--r-md);padding:8px 8px 8px 20px;font-size:13px;line-height:1.35;box-shadow:var(--shadow)}
+#gpsBanner span{flex:1}
+#gpsBanner button{flex:none;padding:11px 18px}
+
+/* Ayuda de ubicación */
+#gpsHelp{position:fixed;inset:0;z-index:1350;background:rgba(18,18,18,.6);display:flex;align-items:center;justify-content:center;padding:16px}
+.help-card{background:var(--white);border-radius:var(--r-card);padding:24px;max-width:440px;width:100%;max-height:86dvh;overflow-y:auto;font-size:14px;line-height:1.5;box-shadow:var(--shadow)}
+.help-card h3{margin:0 0 8px;font:700 20px var(--f-brand);letter-spacing:-.01em}
+.help-card ol{padding-left:20px;margin:8px 0}
+.help-card li{margin:8px 0}
+.help-card p{margin:8px 0}
+
+/* Mapa */
+#map{position:fixed;left:0;right:0;top:calc(var(--top-h) + var(--sat));bottom:calc(var(--nav-h) + var(--sab));background:#222}
+.leaflet-top.leaflet-right{margin-top:8px}
+.leaflet-bar{border:0!important;box-shadow:var(--shadow)!important;border-radius:var(--r-md);overflow:hidden}
+.leaflet-bar a{font-family:var(--f-brand);color:var(--black)}
+.leaflet-control-attribution{font-family:var(--f-body);font-size:10px}
+#crosshair{position:fixed;z-index:900;left:50%;top:calc(var(--top-h) + var(--sat) + (100dvh - var(--top-h) - var(--sat) - var(--nav-h) - var(--sab))/2);width:48px;height:48px;margin:-24px 0 0 -24px;pointer-events:none}
+#crosshair:before,#crosshair:after{content:"";position:absolute;background:var(--lime);box-shadow:0 0 0 1.5px var(--black)}
+#crosshair:before{left:50%;top:0;bottom:0;width:2px;margin-left:-1px}
+#crosshair:after{top:50%;left:0;right:0;height:2px;margin-top:-1px}
+#crosshair i{position:absolute;inset:15px;border:2px solid var(--lime);border-radius:50%;box-shadow:0 0 0 1.5px var(--black)}
+#pickBar{position:fixed;z-index:1100;left:16px;right:16px;bottom:calc(var(--nav-h) + var(--sab) + 16px);background:var(--white);border-radius:var(--r-card);padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:16px;font-size:14px}
+#pickBar div{display:flex;gap:8px}#pickBar button{flex:1}
+
+/* Herramientas del mapa y botón principal */
+#mapTools{position:fixed;z-index:950;right:16px;bottom:calc(var(--nav-h) + var(--sab) + 88px);display:flex;flex-direction:column;gap:8px}
+button.round{width:48px;height:48px;padding:0;border:0;background:var(--white);color:var(--black);box-shadow:var(--shadow)}
+.fab{position:fixed;z-index:950;right:16px;bottom:calc(var(--nav-h) + var(--sab) + 16px);background:var(--lime);border:0;color:var(--black);padding:17px 24px 17px 20px;font:700 16px var(--f-brand);box-shadow:0 8px 24px rgba(18,18,18,.35)}
+body.sheet-open .fab,body.picking .fab,body.sheet-open #mapTools,body.picking #mapTools{display:none}
+
+/* Navegación inferior */
+#bottomnav{position:fixed;z-index:1000;left:0;right:0;bottom:0;height:calc(var(--nav-h) + var(--sab));padding:0 8px var(--sab);display:flex;background:var(--white);box-shadow:0 -8px 24px rgba(18,18,18,.06)}
+#bottomnav button{flex:1;border:0;border-radius:0;background:none;font:600 11px var(--f-brand);padding:8px 2px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;color:var(--n-700)}
+#bottomnav .ni{display:flex;align-items:center;justify-content:center;width:56px;height:30px;border-radius:var(--r-pill);transition:background .15s}
+#bottomnav button.active{color:var(--black);font-weight:700}
+#bottomnav button.active .ni{background:var(--lime)}
+#ptBadge{position:absolute;top:4px;left:calc(50% + 10px);background:var(--black);color:var(--lime);border-radius:var(--r-pill);font:700 10px var(--f-brand);padding:3px 6px;min-width:18px;text-align:center}
+body.picking #bottomnav{display:none}
+body.picking #pickBar{bottom:calc(var(--sab) + 16px)}
+
+/* Hojas (paneles): tarjeta de 32 px sobre Gray */
+#scrim{position:fixed;inset:0;z-index:1190;background:rgba(18,18,18,.45)}
+.sheet{position:fixed;z-index:1200;left:0;right:0;bottom:0;max-height:90dvh;background:var(--gray);border-radius:var(--r-card) var(--r-card) 0 0;display:flex;flex-direction:column;box-shadow:0 -16px 48px rgba(18,18,18,.3);padding-bottom:var(--sab)}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;padding:24px 24px 8px}
+.sheet-head h2{margin:0;font:700 22px var(--f-brand);letter-spacing:-.02em}
+.x{border:0;background:var(--white);border-radius:50%;width:40px;height:40px;padding:0;box-shadow:0 1px 4px rgba(18,18,18,.12)}
+.sheet-body{padding:8px 24px 24px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.sheet-foot{display:flex;gap:8px;padding:16px 24px;background:var(--white);box-shadow:0 -8px 24px rgba(18,18,18,.05)}
+.sheet-foot button{flex:1}
+.sheet-foot .primary{flex:1.6}
+.sheet-foot .icon-only{flex:none}
+label{display:block;font:600 13px var(--f-brand);margin:16px 0 4px}
+label input[type=text],label textarea,label select{display:block;width:100%;margin-top:8px;font:400 16px var(--f-body);padding:14px 20px;border:1px solid var(--n-300);border-radius:var(--r-md);background:var(--white);color:var(--black)}
+label textarea{border-radius:var(--r-md);resize:vertical}
+label input:focus,label textarea:focus,label select:focus{outline:2px solid var(--lime);outline-offset:0;border-color:var(--lime)}
+label input[type=range]{width:100%;margin-top:8px;accent-color:var(--lime-d)}
+label.check{display:flex;gap:12px;align-items:flex-start;font:500 13px/1.4 var(--f-body)}
+label.check input{margin-top:2px;width:18px;height:18px;accent-color:var(--lime-d)}
+.box{background:var(--white);border-radius:var(--r-card);padding:20px 24px;margin:16px 0;box-shadow:var(--shadow)}
+.box-title{font:700 13px var(--f-brand);margin:0 0 8px}
+.box-title.pad{margin:24px 0 8px}
+.coords{font:500 14px ui-monospace,Menlo,Consolas,monospace;margin-bottom:16px;word-break:break-all}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.btn-row button{flex:1 1 0;min-width:0;white-space:nowrap;font-size:13px;padding:12px 8px;gap:6px}
+.hint{font-size:12px;color:var(--n-700);line-height:1.5;margin:16px 0}
+.muted{color:var(--n-500);font-weight:400}
+.empty{color:var(--n-500);text-align:center;padding:24px 0}
+
+/* Listas */
+.row{display:flex;align-items:center;gap:12px;background:var(--white);border-radius:var(--r-md);padding:12px 12px 12px 16px;margin:8px 0;box-shadow:var(--shadow)}
+.row .grow{flex:1;min-width:0}
+.row .grow b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font:600 14px var(--f-brand)}
+.row small{color:var(--n-700);font-size:12px}
+.row input[type=checkbox]{width:22px;height:22px;accent-color:var(--lime-d)}
+.row input[type=color]{width:36px;height:36px;border:0;padding:0;background:none;border-radius:50%}
+.row .ico{padding:10px;border-color:var(--n-300)}
+.row.pt{cursor:pointer}
+.thumb{width:56px;height:56px;border-radius:var(--r-sm);object-fit:cover;background:var(--n-100);flex:none}
+.num{background:var(--black);color:var(--lime);border-radius:var(--r-pill);font:700 11px var(--f-brand);padding:3px 8px;margin-right:8px}
+
+/* Fotos */
+.photo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px}
+.slot{position:relative;aspect-ratio:1;border-radius:var(--r-sm);overflow:hidden;background:var(--white);border:2px dashed var(--n-300);display:flex;align-items:center;justify-content:center;color:var(--n-500);cursor:pointer}
+.slot .i{width:26px;height:26px}
+.slot.filled{border:0;box-shadow:var(--shadow)}
+.slot img{width:100%;height:100%;object-fit:cover}
+.slot .badge{position:absolute;left:4px;bottom:4px;font:600 9px var(--f-brand);background:rgba(18,18,18,.75);color:var(--white);border-radius:var(--r-pill);padding:3px 7px}
+.slot .badge.ok{background:var(--lime);color:var(--black)}
+
+/* Visor */
+#viewer{position:fixed;inset:0;z-index:1300;background:var(--black);display:flex;flex-direction:column}
+#viewer img{flex:1;min-height:0;width:100%;object-fit:contain}
+#viewerNote{color:var(--n-300);font-size:12px;text-align:center;padding:8px}
+.viewer-bar{display:flex;gap:8px;padding:8px 16px calc(16px + var(--sab))}
+.viewer-bar button{flex:1}
+
+/* Ocupado / toast */
+#busy{position:fixed;inset:0;z-index:1400;background:rgba(18,18,18,.6);display:flex;align-items:center;justify-content:center}
+.busy-card{background:var(--white);border-radius:var(--r-card);padding:24px 32px;min-width:260px;text-align:center;font:500 14px var(--f-body);box-shadow:var(--shadow)}
+.spin{width:32px;height:32px;border:4px solid var(--n-100);border-top-color:var(--lime);border-radius:50%;margin:0 auto 16px;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.bar{height:6px;background:var(--n-100);border-radius:var(--r-pill);margin-top:16px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--lime);width:0;transition:width .2s;border-radius:var(--r-pill)}
+#toast{position:fixed;z-index:1500;left:50%;transform:translateX(-50%);bottom:calc(var(--nav-h) + var(--sab) + 96px);background:var(--black);color:var(--white);padding:14px 24px;border-radius:var(--r-pill);font:500 14px var(--f-body);max-width:90vw;text-align:center;box-shadow:var(--shadow)}
+
+/* Acerca de (tarjeta oscura con logo completo) */
+.about{margin-top:24px;background:var(--black);color:var(--white);border-radius:var(--r-card);padding:32px 24px;text-align:center}
+.about-logo{height:34px;width:auto;margin-bottom:24px}
+.about-name{font:700 20px var(--f-brand);letter-spacing:-.01em}
+.about-sub{font:400 13px var(--f-body);color:var(--lime);margin-top:4px}
+.about-ver{font:400 11px/1.6 var(--f-body);color:var(--n-300);margin-top:16px}
+.about-ver a{color:var(--lime);text-decoration:none;font-weight:600}
+
+/* Marcadores del mapa */
+.pin{width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--lime);border:2.5px solid var(--white);box-shadow:0 3px 10px rgba(18,18,18,.55)}
+.pin span{display:block;transform:rotate(45deg);text-align:center;line-height:29px;color:var(--black);font:700 13px var(--f-brand)}
+.gps-dot{width:18px;height:18px;border-radius:50%;background:var(--blue);border:3px solid var(--white);box-shadow:0 0 0 3px rgba(0,183,211,.35)}
+
+@media (min-width:700px){
+  .sheet{left:50%;right:auto;width:520px;transform:translateX(-50%)}
+}
